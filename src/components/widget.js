@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Transition } from 'react-transition-group';
+import Chatbox from './chatbox';
 import './widget.scss';
 
 class Widget extends Component {
-  state = {
-    opened: false,
-    showDock: true,
+  constructor(props) {
+    super(props);
+    this.state = {
+      opened: false,
+      showDock: true,
+    };
   }
 
   handleToggleOpen = () => {
@@ -28,71 +31,39 @@ class Widget extends Component {
     });
   }
 
-  renderBody = () => {
-    const { showDock } = this.state;
-
-    if (!showDock) return '';
-
-    return (
-      <button
-        type="button"
-        className="dock"
-        onClick={this.handleToggleOpen}
-        onKeyPress={this.handleToggleOpen}
-      >
-        ^ OPEN ^
-      </button>
-    );
-  }
 
   render() {
-    const { opened } = this.state;
-    const body = this.renderBody();
-    const { bodyText, headerText, footerText } = this.props;
+    const { opened, showDock } = this.state;
 
     return (
       <div className="docked-widget">
         <Transition in={opened} timeout={250} onExited={this.handleWidgetExit}>
-          {status => (
+          {(status) => (
             <div className={`widget widget-${status}`}>
-              <div className="widget-header">
-                <div className="widget-header-title">
-                  {headerText}
-                </div>
-                <button
-                  type="button"
-                  className="widget-header-icon"
-                  onClick={this.handleToggleOpen}
-                  onKeyPress={this.handleToggleOpen}
-                >
-                  X
-                </button>
-              </div>
-              <div className="widget-body">
-                {bodyText}
-              </div>
-              <div className="widget-footer">
-                {footerText}
-              </div>
+              <Chatbox handleToggleOpen={this.handleToggleOpen} opened={opened} status={status} />
             </div>
           )}
         </Transition>
-        {body}
+        {showDock && (
+          <button
+            type="button"
+            className="dock"
+            onClick={this.handleToggleOpen}
+            onKeyPress={this.handleToggleOpen}
+          >
+            <span>Open support chat</span>
+            <span className={`arrow ${opened ? 'opened' : 'closed'}`}>⌃</span>
+          </button>
+        )}
       </div>
     );
   }
 }
 
 Widget.propTypes = {
-  headerText: PropTypes.string,
-  bodyText: PropTypes.string,
-  footerText: PropTypes.string,
 };
 
 Widget.defaultProps = {
-  headerText: 'Header',
-  bodyText: 'Body',
-  footerText: 'Footer',
 };
 
 export default Widget;

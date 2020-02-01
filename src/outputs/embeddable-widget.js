@@ -7,7 +7,7 @@ export default class EmbeddableWidget {
   static el;
 
   static mount({ parentElement = null, ...props } = {}) {
-    const component = <Widget {...props} />;
+    const component = <Widget {...props} />; // eslint-disable-line
 
     function doRender() {
       if (EmbeddableWidget.el) {

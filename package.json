@@ -114,9 +114,11 @@
     "webpack-serve": "3.2.0"
   },
   "dependencies": {
+    "matrix-js-sdk": "^4.0.0",
     "prop-types": "^15.6.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-transition-group": "^4.0.0"
+    "react-transition-group": "^4.0.0",
+    "uuidv4": "^6.0.2"
   }
 }

@@ -1,3 +1,7 @@
+@import "variables";
+@import "loader";
+@import "chat";
+
 @keyframes slideInUp {
   from {
     transform: translate3d(0, 100%, 0);
@@ -26,7 +30,6 @@
   position: fixed;
   bottom: 0px;
   right: 10px;
-  width: 200px;
   z-index: 9999;
 }
 
@@ -34,17 +37,24 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 10px;
-  width: 180px;
-  border: 1px solid grey;
-  background: white;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  width: 400px;
+  max-width: calc(100vw - 10px);
+  background: $theme-color;
+  color: $white;
+  font-family: $theme-font;
+  font-size: 1rem;
+  border: none;
+  color: $white;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 
 .widget {
-  width: 200px;
-  border: 1px solid grey;
+  width: 400px;
+  max-width: calc(100vw - 10px);
   border-bottom: none;
   animation-duration: 0.2s;
   animation-fill-mode: forwards;
@@ -65,14 +75,11 @@
   }
 
   &-header {
-    height: 30px;
-    line-height: 30px;
-    background: lightgrey;
-    color: grey;
-    padding-left: 10px;
-
+    background: $theme-color;
+    color: $white;
+    padding: 0.5rem 1rem;
     display: flex;
-    align-items: stretch;
+    align-items: center;
 
     &-title {
       display: flex;
@@ -84,7 +91,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: .75rem;
+      background: transparent;
+      border: none;
     }
   }
   &-body {
@@ -96,5 +104,33 @@
     background: green;
     line-height: 30px;
     padding-left: 10px;
+  }
+}
+
+.arrow {
+  transform: rotateX(0deg);
+  transition: all 0.5s linear;
+  color: $white;
+  font-size: 1rem;
+  line-height: 1;
+
+  &.opened {
+    transform: rotateX(180deg);
+  }
+
+  &.closed {
+    transform: rotateX(0deg) translateY(25%);
+
+  }
+}
+
+@media screen and (max-width: 400px){
+  .docked-widget {
+    right: 0;
+    left: 0;
+  }
+
+  .dock, .widget {
+    max-width: 100vw;
   }
 }

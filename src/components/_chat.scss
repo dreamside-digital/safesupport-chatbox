@@ -1,0 +1,100 @@
+
+@import url('https://fonts.googleapis.com/css?family=Assistant&display=swap');
+
+
+#ocrcc-chatbox {
+  font-family: $theme-font;
+  display: flex;
+  flex-direction: column;
+  min-height: 50vh;
+  outline: 1px solid $theme-color;
+  outline-offset: -1px;
+
+  .message-window {
+    background-color: $light-color;
+    flex: 1 0 auto;
+    padding: 0.5rem;
+    height: 300px;
+    max-height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .message {
+    .sender {
+      font-weight: bold;
+      color: $theme-color;
+    }
+
+    .text {
+      padding: 0.5rem 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      width: fit-content;
+    }
+
+    &.from-me {
+      display: flex;
+      justify-content: flex-end;
+
+      .text {
+        background-color: $theme-color;
+        color: $white;
+        border-radius: 15px 15px 0 15px;
+        margin-left: 10%;
+      }
+    }
+
+    &.from-support {
+      display: flex;
+      justify-content: flex-start;
+
+      .text {
+        background-color: $white;
+        color: $dark-color;
+        border: 1px solid $theme-color;
+        border-radius: 15px 15px 15px 0;
+        margin-right: 10%;
+      }
+    }
+  }
+
+  .input-window {
+    flex: 0 0 auto;
+
+    form {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0;
+    }
+
+    input[type="text"] {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      flex: 1 0 auto;
+      border: none;
+      outline: 1px solid $theme-color;
+      outline-offset: -1px;
+      color: $dark-color;
+      font-family: $theme-font;
+
+      &:focus {
+        border: none;
+      }
+    }
+
+    input[type="submit"] {
+      background-color: $theme-color;
+      height: 100%;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      color: $white;
+      font-weight: bold;
+      border: none;
+      font-family: $theme-font;
+      cursor: pointer;
+    }
+  }
+}
