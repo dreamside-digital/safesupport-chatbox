@@ -6,7 +6,7 @@ import {uuid} from "uuidv4"
 import Message from "./message";
 
 const MATRIX_SERVER_ADDRESS = "https://matrix.rhok.space"
-const FACILITATOR_USERNAME = "@anonymouscat:rhok.space"
+const FACILITATOR_USERNAME = "@ocrcc-facilitator-demo:rhok.space"
 const CHATROOM_NAME = "Support Chat"
 
 
