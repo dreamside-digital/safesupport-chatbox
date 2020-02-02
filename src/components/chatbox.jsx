@@ -1,5 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
+import * as olm from "olm"
+global.Olm = olm
+
 import * as sdk from "matrix-js-sdk";
 import {uuid} from "uuidv4"
 
@@ -78,17 +81,25 @@ class ChatBox extends React.Component {
         x_show_msisdn: true,
       }).then(data => {
         console.log("Registered user", data)
+        let opts = {
+          baseUrl: MATRIX_SERVER_ADDRESS,
+          accessToken: data.access_token,
+          userId: data.user_id,
+          deviceId: data.device_id,
+        }
+        const localStorage = window.localStorage;
+        if (localStorage) {
+          opts.sessionStore = new sdk.WebStorageSessionStore(localStorage)
+        }
         this.setState({
           access_token: data.access_token,
           user_id: data.user_id,
           username: username,
-          client: sdk.createClient({
-            baseUrl: MATRIX_SERVER_ADDRESS,
-            accessToken: data.access_token,
-            userId: data.user_id
-          })
+          client: sdk.createClient(opts)
+        }, () => {
+          this.state.client.setDisplayName("Anonymous")
+          this.state.client.initCrypto()
         })
-        this.state.client.setDisplayName("Anonymous")
       }).catch(err => {
         console.log("Registration error", err)
       })
