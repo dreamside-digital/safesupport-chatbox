@@ -4,11 +4,11 @@
   "description": "building an embeddable js widget with react",
   "main": "index.js",
   "scripts": {
-    "build": "NODE_ENV=production webpack-cli --mode production && npm run build-storybook",
+    "build": "NODE_ENV=production webpack-cli --mode production",
     "start": "webpack-dev-server",
     "test": "jest",
     "test-update-snapshots": "jest --updateSnapshot",
-    "deploy": "npm run build && gh-pages -d dist",
+    "deploy": "yarn build && gh-pages -d dist",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook -c .storybook -o dist/storybook",
     "lint": "./node_modules/.bin/eslint ."
@@ -115,6 +115,7 @@
   },
   "dependencies": {
     "matrix-js-sdk": "^4.0.0",
+    "node-localstorage": "^2.1.5",
     "olm": "https://packages.matrix.org/npm/olm/olm-3.1.4.tgz",
     "prop-types": "^15.6.2",
     "react": "^16.8.6",

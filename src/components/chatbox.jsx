@@ -1,12 +1,19 @@
 import React from "react"
 import PropTypes from "prop-types"
+import * as util from "util";
+import * as os from "os";
+import * as path from "path";
+import * as fs from "fs";
+import { LocalStorage } from "node-localstorage";
 import * as olm from "olm"
 global.Olm = olm
 
-import * as sdk from "matrix-js-sdk";
+import * as matrix from "matrix-js-sdk";
+import LocalStorageCryptoStore from "matrix-js-sdk/lib/crypto/store/localStorage-crypto-store";
 import {uuid} from "uuidv4"
 
 import Message from "./message";
+
 
 const MATRIX_SERVER_ADDRESS = "https://matrix.rhok.space"
 const FACILITATOR_USERNAME = "@ocrcc-facilitator-demo:rhok.space"
@@ -16,7 +23,7 @@ const CHATROOM_NAME = "Support Chat"
 class ChatBox extends React.Component {
   constructor(props) {
     super(props)
-    const client = sdk.createClient(MATRIX_SERVER_ADDRESS)
+    const client = matrix.createClient(MATRIX_SERVER_ADDRESS)
     this.state = {
       client: client,
       ready: false,
@@ -73,32 +80,42 @@ class ChatBox extends React.Component {
       // actual registration request with randomly generated username and password
       const username = uuid()
       const password = uuid()
+      const sessionId = err.data.session
       this.state.client.registerRequest({
-        auth: {session: err.data.session, type: "m.login.dummy"},
+        auth: {session: sessionId, type: "m.login.dummy"},
         inhibit_login: false,
         password: password,
         username: username,
         x_show_msisdn: true,
       }).then(data => {
         console.log("Registered user", data)
+
+        // use node localStorage if window.localStorage is not available
+        let localStorage = global.localStorage;
+        if (typeof localStorage === "undefined" || localStorage === null) {
+          const deviceDesc = `matrix-chat-${data.device_id}-${sessionId}`
+          const localStoragePath = path.resolve(path.join(os.homedir(), ".local-storage", deviceDesc))
+          localStorage = new LocalStorage(localStoragePath);
+        }
+
+        console.log("localStorage", localStorage)
+
+        // create new client with full options
         let opts = {
           baseUrl: MATRIX_SERVER_ADDRESS,
           accessToken: data.access_token,
           userId: data.user_id,
           deviceId: data.device_id,
+          sessionStore: new matrix.WebStorageSessionStore(localStorage),
         }
-        const localStorage = window.localStorage;
-        if (localStorage) {
-          opts.sessionStore = new sdk.WebStorageSessionStore(localStorage)
-        }
+
         this.setState({
           access_token: data.access_token,
           user_id: data.user_id,
           username: username,
-          client: sdk.createClient(opts)
+          client: matrix.createClient(opts)
         }, () => {
           this.state.client.setDisplayName("Anonymous")
-          this.state.client.initCrypto()
         })
       }).catch(err => {
         console.log("Registration error", err)
@@ -108,7 +125,13 @@ class ChatBox extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.client !== this.state.client) {
-      this.state.client.startClient()
+      this.state.client.initCrypto().then(res => {
+        console.log("Crypto initialized!")
+      }).catch(err => {
+        console.log("Crypto ERROR", err)
+      }).finally(() => {
+        this.state.client.startClient()
+      })
 
       this.state.client.once('sync', (state, prevState, res) => {
         if (state === "PREPARED") {
