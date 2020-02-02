@@ -7,8 +7,7 @@
   display: flex;
   flex-direction: column;
   min-height: 50vh;
-  outline: 1px solid $theme-color;
-  outline-offset: -1px;
+  border: 1px solid $theme-color;
 
   .message-window {
     background-color: $light-color;
@@ -67,6 +66,7 @@
       display: flex;
       align-items: center;
       margin-bottom: 0;
+      border-top: 1px solid $theme-color;
     }
 
     input[type="text"] {
@@ -75,8 +75,6 @@
       border: none;
       flex: 1 0 auto;
       border: none;
-      outline: 1px solid $theme-color;
-      outline-offset: -1px;
       color: $dark-color;
       font-family: $theme-font;
 
