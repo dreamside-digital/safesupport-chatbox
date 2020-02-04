@@ -18,6 +18,7 @@ import Message from "./message";
 const MATRIX_SERVER_ADDRESS = "https://matrix.rhok.space"
 const FACILITATOR_USERNAME = "@ocrcc-facilitator-demo:rhok.space"
 const CHATROOM_NAME = "Support Chat"
+const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 
 
 class ChatBox extends React.Component {
@@ -52,24 +53,62 @@ class ChatBox extends React.Component {
       room_alias_name: `private-support-chat-${uuid()}`,
       invite: [FACILITATOR_USERNAME], // TODO: create bot user to add
       visibility: 'private',
-      name: `${chatDate} - ${CHATROOM_NAME} - started at ${chatTime}`
+      name: `${chatDate} - ${CHATROOM_NAME} - started at ${chatTime}`,
+      initial_state: [
+        {
+          type: 'm.room.encryption',
+          state_key: '',
+          content: {
+              algorithm: 'm.megolm.v1.aes-sha2',
+          },
+        },
+
+      ]
     }).then(data => {
-      this.setState({ room_id: data.room_id })
+      this.setState({
+        room_id: data.room_id,
+        room_encrypted: this.state.client.isRoomEncrypted(this.state.room_id)
+      })
+      // this.state.client.setRoomEncryption(data.room_id, ENCRYPTION_CONFIG)
+    }).catch(err => {
+      console.log("Unable to create room", err)
     })
   }
 
   sendMessage = () => {
-    const content = {
-      "body": this.state.inputValue,
-      "msgtype": "m.text"
-    };
-
-    this.state.client.sendEvent(this.state.room_id, "m.room.message", content, "").then((res) => {
+    this.state.client.sendTextMessage(this.state.room_id, this.state.inputValue).then((res) => {
       this.setState({ inputValue: "" })
       this.chatboxInput.current.focus()
     }).catch((err) => {
       console.log(err);
+      Object.keys(err.devices).forEach((userId) => {
+          Object.keys(err.devices[userId]).map((deviceId) => {
+              this.state.client.setDeviceKnown(userId, deviceId, true);
+          });
+          this.state.client.sendTextMessage(this.state.room_id, this.state.inputValue)
+            .then((res) => {
+              this.setState({ inputValue: "" })
+              this.chatboxInput.current.focus()
+            })
+            .catch(err => {
+              console.log(err)
+            });
+      });
     })
+  }
+
+  handleMessageEvent = event => {
+    const message = {
+      id: event.getId(),
+      type: event.getType(),
+      sender: event.getSender(),
+      roomId: event.getRoomId(),
+      content: event.getContent(),
+    }
+
+    const messages = [...this.state.messages]
+    messages.push(message)
+    this.setState({ messages })
   }
 
   componentDidMount() {
@@ -88,7 +127,6 @@ class ChatBox extends React.Component {
         username: username,
         x_show_msisdn: true,
       }).then(data => {
-        console.log("Registered user", data)
 
         // use node localStorage if window.localStorage is not available
         let localStorage = global.localStorage;
@@ -97,8 +135,6 @@ class ChatBox extends React.Component {
           const localStoragePath = path.resolve(path.join(os.homedir(), ".local-storage", deviceDesc))
           localStorage = new LocalStorage(localStoragePath);
         }
-
-        console.log("localStorage", localStorage)
 
         // create new client with full options
         let opts = {
@@ -139,11 +175,32 @@ class ChatBox extends React.Component {
         }
       });
 
+
       this.state.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
         if (event.getType() === "m.room.message") {
-          const messages = [...this.state.messages]
-          messages.push(event)
-          this.setState({ messages })
+
+          if (event.status === "sending") {
+            return; // do nothing
+          }
+
+          if (event.status === "not sent") {
+            return console.log("message not sent!", event)
+          }
+
+          if (event.isEncrypted()) {
+            return console.log("message encrypted")
+          }
+
+          console.log("ROOM TIMELINE EVENT", event)
+
+          this.handleMessageEvent(event)
+        }
+      });
+
+      this.state.client.on("Event.decrypted", (event) => {
+        console.log("EVENT DECRYPTED => ", event)
+        if (event.getType() === "m.room.message") {
+          this.handleMessageEvent(event)
         }
       });
     }
@@ -202,7 +259,7 @@ class ChatBox extends React.Component {
           {
             messages.map((message, index) => {
               return(
-                <Message key={message.event.event_id} message={message} user_id={user_id} />
+                <Message key={message.id} message={message} user_id={user_id} />
               )
             })
           }
