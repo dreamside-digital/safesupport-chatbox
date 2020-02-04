@@ -29,8 +29,8 @@ class ChatBox extends React.Component {
       client: client,
       ready: false,
       rooms: { chunk: [] },
-      access_token: null,
-      user_id: null,
+      accessToken: null,
+      userId: null,
       messages: [],
       inputValue: "",
     }
@@ -38,8 +38,8 @@ class ChatBox extends React.Component {
   }
 
   leaveRoom = () => {
-    if (this.state.room_id) {
-      this.state.client.leave(this.state.room_id).then(data => {
+    if (this.state.roomId) {
+      this.state.client.leave(this.state.roomId).then(data => {
         console.log("Left room", data)
       })
     }
@@ -58,16 +58,13 @@ class ChatBox extends React.Component {
         {
           type: 'm.room.encryption',
           state_key: '',
-          content: {
-              algorithm: 'm.megolm.v1.aes-sha2',
-          },
+          content: ENCRYPTION_CONFIG,
         },
 
       ]
     }).then(data => {
       this.setState({
-        room_id: data.room_id,
-        room_encrypted: this.state.client.isRoomEncrypted(this.state.room_id)
+        roomId: data.room_id
       })
       // this.state.client.setRoomEncryption(data.room_id, ENCRYPTION_CONFIG)
     }).catch(err => {
@@ -76,8 +73,11 @@ class ChatBox extends React.Component {
   }
 
   sendMessage = () => {
-    this.state.client.sendTextMessage(this.state.room_id, this.state.inputValue).then((res) => {
-      this.setState({ inputValue: "" })
+    this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue).then((res) => {
+      this.setState({
+        inputValue: "",
+        isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId)
+      })
       this.chatboxInput.current.focus()
     }).catch((err) => {
       console.log(err);
@@ -85,9 +85,9 @@ class ChatBox extends React.Component {
           Object.keys(err.devices[userId]).map((deviceId) => {
               this.state.client.setDeviceKnown(userId, deviceId, true);
           });
-          this.state.client.sendTextMessage(this.state.room_id, this.state.inputValue)
+          this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue)
             .then((res) => {
-              this.setState({ inputValue: "" })
+              this.setState({ inputValue: "", isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId) })
               this.chatboxInput.current.focus()
             })
             .catch(err => {
@@ -146,8 +146,8 @@ class ChatBox extends React.Component {
         }
 
         this.setState({
-          access_token: data.access_token,
-          user_id: data.user_id,
+          accessToken: data.access_token,
+          userId: data.user_id,
           username: username,
           client: matrix.createClient(opts)
         }, () => {
@@ -222,7 +222,7 @@ class ChatBox extends React.Component {
     e.preventDefault()
     if (!Boolean(this.state.inputValue)) return null;
 
-    if (!this.state.room_id) {
+    if (!this.state.roomId) {
       return this.createRoom().then(this.sendMessage)
     }
 
@@ -230,8 +230,9 @@ class ChatBox extends React.Component {
   }
 
   render() {
-    const { ready, messages, inputValue, user_id } = this.state;
+    const { ready, messages, inputValue, userId, isRoomEncrypted } = this.state;
     const { opened, handleToggleOpen } = this.props;
+    console.log("isRoomEncrypted", isRoomEncrypted)
 
     if (!ready) {
       return (
@@ -243,7 +244,7 @@ class ChatBox extends React.Component {
       <div id="ocrcc-chatbox">
         <div className="widget-header">
           <div className="widget-header-title">
-            Support Chat
+            { isRoomEncrypted && <span>🔒</span> } Support Chat
           </div>
           <button
             type="button"
@@ -259,9 +260,14 @@ class ChatBox extends React.Component {
           {
             messages.map((message, index) => {
               return(
-                <Message key={message.id} message={message} user_id={user_id} />
+                <Message key={message.id} message={message} userId={userId} />
               )
             })
+          }
+        </div>
+        <div className="notices">
+          {
+            isRoomEncrypted && <div>Messages in this chat are secured with end-to-end encryption.</div>
           }
         </div>
         </div>

@@ -18,6 +18,12 @@
     overflow: auto;
     display: flex;
     flex-direction: column-reverse;
+    justify-content: space-between;
+  }
+
+  .notices {
+    color: $dark-color;
+    font-size: 0.9rem;
   }
 
   .message {

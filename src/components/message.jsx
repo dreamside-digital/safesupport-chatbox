@@ -1,8 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-const Message = ({ message, user_id }) => {
-  const fromMe = message.sender === user_id;
+const Message = ({ message, userId }) => {
+  const fromMe = message.sender === userId;
 
   return (
     <div className={`message ${fromMe ? "from-me" : "from-support"}`}>

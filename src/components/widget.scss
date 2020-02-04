@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   width: 400px;
   max-width: calc(100vw - 10px);
   background: $theme-color;
@@ -77,7 +77,7 @@
   &-header {
     background: $theme-color;
     color: $white;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     display: flex;
     align-items: center;
 
