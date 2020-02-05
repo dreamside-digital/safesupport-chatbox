@@ -13,6 +13,7 @@ export default class EmbeddableWidget {
       if (EmbeddableWidget.el) {
         throw new Error('EmbeddableWidget is already mounted, unmount first');
       }
+
       const el = document.createElement('div');
       el.setAttribute('class', 'cleanslate');
 
@@ -27,6 +28,7 @@ export default class EmbeddableWidget {
       );
       EmbeddableWidget.el = el;
     }
+
     if (document.readyState === 'complete') {
       doRender();
     } else {

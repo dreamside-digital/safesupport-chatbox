@@ -40,7 +40,12 @@ class Widget extends Component {
         <Transition in={opened} timeout={250} onExited={this.handleWidgetExit}>
           {(status) => (
             <div className={`widget widget-${status}`}>
-              <Chatbox handleToggleOpen={this.handleToggleOpen} opened={opened} status={status} />
+              <Chatbox
+                handleToggleOpen={this.handleToggleOpen}
+                opened={opened}
+                status={status}
+                {...this.props} // eslint-disable-line
+              />
             </div>
           )}
         </Transition>
@@ -61,6 +66,7 @@ class Widget extends Component {
 }
 
 Widget.propTypes = {
+
 };
 
 Widget.defaultProps = {

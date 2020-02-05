@@ -8,7 +8,20 @@
 
     <script src="./widget.js"></script>
     <script>
-      EmbeddableWidget.mount();
+      var theme = {
+        themeColor: "#008080",
+        lightColor: "#FFF8F0",
+        darkColor: "#22333B",
+        errorColor: "#FFFACD",
+        font: "'Assistant', 'Helvetica', sans-serif",
+        placement: "right"
+      };
+
+      EmbeddableWidget.mount({
+        matrixServerUrl: "https://matrix.rhok.space",
+        roomName: "Support Chat",
+        theme: theme
+      });
     </script>
   </body>
 </html>

@@ -9,30 +9,38 @@ import * as olm from "olm"
 global.Olm = olm
 
 import * as matrix from "matrix-js-sdk";
-import LocalStorageCryptoStore from "matrix-js-sdk/lib/crypto/store/localStorage-crypto-store";
 import {uuid} from "uuidv4"
 
 import Message from "./message";
 
 
-const MATRIX_SERVER_ADDRESS = "https://matrix.rhok.space"
+const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space"
+const DEFAULT_ROOM_NAME = "Support Chat"
 const FACILITATOR_USERNAME = "@ocrcc-facilitator-demo:rhok.space"
-const CHATROOM_NAME = "Support Chat"
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
+const DEFAULT_THEME = {
+  themeColor: "#008080", // teal
+  lightColor: "#FFF8F0",
+  darkColor: "#22333B",
+  errorColor: "#FFFACD",
+  font: "'Assistant', 'Helvetica', sans-serif",
+  placement: "right"
+};
 
 
 class ChatBox extends React.Component {
   constructor(props) {
     super(props)
-    const client = matrix.createClient(MATRIX_SERVER_ADDRESS)
+    const client = matrix.createClient(this.props.matrixServerUrl)
     this.state = {
-      client: client,
+      client: null,
       ready: false,
-      rooms: { chunk: [] },
       accessToken: null,
       userId: null,
       messages: [],
       inputValue: "",
+      errors: [],
+      roomId: null,
     }
     this.chatboxInput = React.createRef();
   }
@@ -45,6 +53,66 @@ class ChatBox extends React.Component {
     }
   }
 
+  initializeClient = () => {
+    // empty registration request to get session
+    let client = matrix.createClient(this.props.matrixServerUrl)
+    return client.registerRequest({})
+      .then(data => {
+        console.log("Empty registration request to get session", data)
+      })
+      .catch(err => {
+      // actual registration request with randomly generated username and password
+        const username = uuid()
+        const password = uuid()
+        const sessionId = err.data.session
+        client.registerRequest({
+          auth: {session: sessionId, type: "m.login.dummy"},
+          inhibit_login: false,
+          password: password,
+          username: username,
+          x_show_msisdn: true,
+        })
+        .then(data => {
+
+          // use node localStorage if window.localStorage is not available
+          let localStorage = global.localStorage;
+          if (typeof localStorage === "undefined" || localStorage === null) {
+            const deviceDesc = `matrix-chat-${data.device_id}-${sessionId}`
+            const localStoragePath = path.resolve(path.join(os.homedir(), ".local-storage", deviceDesc))
+            localStorage = new LocalStorage(localStoragePath);
+          }
+
+          this.setState({
+            accessToken: data.access_token,
+            userId: data.user_id,
+            username: username
+          })
+
+          // create new client with full options
+          let opts = {
+            baseUrl: this.props.matrixServerUrl,
+            accessToken: data.access_token,
+            userId: data.user_id,
+            deviceId: data.device_id,
+            sessionStore: new matrix.WebStorageSessionStore(localStorage),
+          }
+
+          client = matrix.createClient(opts)
+          client.setDisplayName("Anonymous")
+        })
+        .catch(err => {
+          console.log("Registration error", err)
+        })
+        .then(() => client.initCrypto())
+        .finally(() => client.startClient())
+        .then(() => {
+          this.setState({
+            client: client
+          })
+        })
+    })
+  }
+
   createRoom = () => {
     const currentDate = new Date()
     const chatDate = currentDate.toLocaleDateString()
@@ -53,7 +121,7 @@ class ChatBox extends React.Component {
       room_alias_name: `private-support-chat-${uuid()}`,
       invite: [FACILITATOR_USERNAME], // TODO: create bot user to add
       visibility: 'private',
-      name: `${chatDate} - ${CHATROOM_NAME} - started at ${chatTime}`,
+      name: `${chatDate} - ${this.props.roomName} - started at ${chatTime}`,
       initial_state: [
         {
           type: 'm.room.encryption',
@@ -62,39 +130,39 @@ class ChatBox extends React.Component {
         },
 
       ]
-    }).then(data => {
+    })
+    .then(data => {
       this.setState({
         roomId: data.room_id
       })
-      // this.state.client.setRoomEncryption(data.room_id, ENCRYPTION_CONFIG)
-    }).catch(err => {
+    })
+    .catch(err => {
       console.log("Unable to create room", err)
     })
   }
 
   sendMessage = () => {
-    this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue).then((res) => {
-      this.setState({
-        inputValue: "",
-        isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId)
+    this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue)
+      .then((res) => {
+        this.setState({
+          inputValue: "",
+        })
+        this.chatboxInput.current.focus()
       })
-      this.chatboxInput.current.focus()
-    }).catch((err) => {
-      console.log(err);
-      Object.keys(err.devices).forEach((userId) => {
-          Object.keys(err.devices[userId]).map((deviceId) => {
-              this.state.client.setDeviceKnown(userId, deviceId, true);
-          });
-          this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue)
-            .then((res) => {
-              this.setState({ inputValue: "", isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId) })
-              this.chatboxInput.current.focus()
-            })
-            .catch(err => {
-              console.log(err)
+      .catch((err) => {
+        switch (err["errcode"]) {
+          case "M_UNKNOWN": // UnknownDeviceError
+            Object.keys(err.devices).forEach((userId) => {
+              Object.keys(err.devices[userId]).map((deviceId) => {
+                  this.state.client.setDeviceKnown(userId, deviceId, true);
+              });
             });
-      });
-    })
+            this.sendMessage()
+            break;
+          default:
+            console.log("Error sending message", err);
+        }
+      })
   }
 
   handleMessageEvent = event => {
@@ -111,63 +179,9 @@ class ChatBox extends React.Component {
     this.setState({ messages })
   }
 
-  componentDidMount() {
-    // empty registration request to get session
-    this.state.client.registerRequest({}).then(data => {
-      console.log("Empty registration request to get session", data)
-    }).catch(err => {
-      // actual registration request with randomly generated username and password
-      const username = uuid()
-      const password = uuid()
-      const sessionId = err.data.session
-      this.state.client.registerRequest({
-        auth: {session: sessionId, type: "m.login.dummy"},
-        inhibit_login: false,
-        password: password,
-        username: username,
-        x_show_msisdn: true,
-      }).then(data => {
-
-        // use node localStorage if window.localStorage is not available
-        let localStorage = global.localStorage;
-        if (typeof localStorage === "undefined" || localStorage === null) {
-          const deviceDesc = `matrix-chat-${data.device_id}-${sessionId}`
-          const localStoragePath = path.resolve(path.join(os.homedir(), ".local-storage", deviceDesc))
-          localStorage = new LocalStorage(localStoragePath);
-        }
-
-        // create new client with full options
-        let opts = {
-          baseUrl: MATRIX_SERVER_ADDRESS,
-          accessToken: data.access_token,
-          userId: data.user_id,
-          deviceId: data.device_id,
-          sessionStore: new matrix.WebStorageSessionStore(localStorage),
-        }
-
-        this.setState({
-          accessToken: data.access_token,
-          userId: data.user_id,
-          username: username,
-          client: matrix.createClient(opts)
-        }, () => {
-          this.state.client.setDisplayName("Anonymous")
-        })
-      }).catch(err => {
-        console.log("Registration error", err)
-      })
-    })
-  }
-
   componentDidUpdate(prevProps, prevState) {
     if (prevState.client !== this.state.client) {
-      this.state.client.initCrypto().then(res => {
-        console.log("Crypto initialized!")
-      }).catch(err => {
-        console.log("Crypto ERROR", err)
-      }).finally(() => {
-        this.state.client.startClient()
-      })
+      this.createRoom()
 
       this.state.client.once('sync', (state, prevState, res) => {
         if (state === "PREPARED") {
@@ -191,22 +205,29 @@ class ChatBox extends React.Component {
             return console.log("message encrypted")
           }
 
-          console.log("ROOM TIMELINE EVENT", event)
-
           this.handleMessageEvent(event)
         }
       });
 
       this.state.client.on("Event.decrypted", (event) => {
-        console.log("EVENT DECRYPTED => ", event)
         if (event.getType() === "m.room.message") {
           this.handleMessageEvent(event)
         }
       });
     }
 
-    if (prevProps.status !== "entered" && this.props.status === "entered") {
+    if (prevState.roomId !== this.state.roomId) {
+      this.setState({
+        isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId)
+      })
+    }
+
+    if (!prevState.ready && this.state.ready) {
       this.chatboxInput.current.focus()
+    }
+
+    if (this.state.client === null && prevProps.status !== "entered" && this.props.status === "entered") {
+      this.initializeClient()
     }
   }
 
@@ -232,13 +253,6 @@ class ChatBox extends React.Component {
   render() {
     const { ready, messages, inputValue, userId, isRoomEncrypted } = this.state;
     const { opened, handleToggleOpen } = this.props;
-    console.log("isRoomEncrypted", isRoomEncrypted)
-
-    if (!ready) {
-      return (
-        <div className="loader">loading...</div>
-      )
-    }
 
     return (
       <div id="ocrcc-chatbox">
@@ -255,21 +269,24 @@ class ChatBox extends React.Component {
           <span className={`arrow ${opened ? "opened" : "closed"}`}>⌃</span>
           </button>
         </div>
+
         <div className="message-window">
           <div className="messages">
           {
+            ready ?
             messages.map((message, index) => {
               return(
                 <Message key={message.id} message={message} userId={userId} />
               )
-            })
+            }) :
+            <div className="loader">loading...</div>
           }
-        </div>
-        <div className="notices">
-          {
-            isRoomEncrypted && <div>Messages in this chat are secured with end-to-end encryption.</div>
-          }
-        </div>
+          </div>
+          <div className="notices">
+            {
+              isRoomEncrypted && <div>Messages in this chat are secured with end-to-end encryption.</div>
+            }
+          </div>
         </div>
         <div className="input-window">
           <form onSubmit={this.handleSubmit}>
@@ -289,11 +306,15 @@ class ChatBox extends React.Component {
 };
 
 ChatBox.propTypes = {
-
+  matrixServerUrl: PropTypes.string.isRequired,
+  roomName: PropTypes.string.isRequired,
+  theme: PropTypes.object,
 }
 
 ChatBox.defaultProps = {
-
+  matrixServerUrl: DEFAULT_MATRIX_SERVER,
+  roomName: DEFAULT_ROOM_NAME,
+  theme: DEFAULT_THEME,
 }
 
 export default ChatBox;
