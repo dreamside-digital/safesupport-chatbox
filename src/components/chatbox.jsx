@@ -150,8 +150,8 @@ class ChatBox extends React.Component {
         this.chatboxInput.current.focus()
       })
       .catch((err) => {
-        switch (err["errcode"]) {
-          case "M_UNKNOWN": // UnknownDeviceError
+        switch (err["name"]) {
+          case "UnknownDeviceError":
             Object.keys(err.devices).forEach((userId) => {
               Object.keys(err.devices[userId]).map((deviceId) => {
                   this.state.client.setDeviceKnown(userId, deviceId, true);
