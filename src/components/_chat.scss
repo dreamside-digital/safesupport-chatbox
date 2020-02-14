@@ -6,15 +6,15 @@
   font-family: $theme-font;
   display: flex;
   flex-direction: column;
-  min-height: 50vh;
+  height: 60vh;
+  max-height: 100vh;
+  min-height: 180px;
   border: 1px solid $theme-color;
 
   .message-window {
     background-color: $light-color;
-    flex: 1 0 auto;
+    flex: 1 1 auto;
     padding: 0.5rem;
-    height: 300px;
-    max-height: 100%;
     overflow: auto;
     display: flex;
     flex-direction: column-reverse;
@@ -37,6 +37,7 @@
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
       width: fit-content;
+      border: 1px solid $theme-color;
     }
 
     &.from-me {
@@ -58,7 +59,6 @@
       .text {
         background-color: $white;
         color: $dark-color;
-        border: 1px solid $theme-color;
         border-radius: 15px 15px 15px 0;
         margin-right: 10%;
       }
@@ -101,4 +101,5 @@
       cursor: pointer;
     }
   }
+
 }

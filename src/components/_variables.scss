@@ -1,8 +1,16 @@
-$light-color: #FFF8F0;
-$dark-color: #22333B;
+$light-color: #f6faff;
+$dark-color: #04090F;
 $yellow: #FFFACD;
-$teal: #008080;
+$dark-blue: #2660A4;
 $white: #ffffff;
 $highlight-color: $yellow;
-$theme-color: $teal;
+$theme-color: $dark-blue;
 $theme-font: 'Assistant', 'Helvetica', sans-serif;
+
+/* Dark mode colors */
+
+$dark-background-color: #0F1116;
+$light-background-color: #ffffff;
+$light-text-color: #ffffff;
+$dark-text-color: #0F1116;
+$dark-theme-color: #333C4B;

@@ -1,0 +1,61 @@
+@media (prefers-color-scheme: dark) {
+  .dock {
+    background: $dark-theme-color;
+  }
+
+  .loader {
+    color: $dark-theme-color;
+  }
+
+  #ocrcc-chatbox {
+    border: 1px solid $dark-theme-color;
+
+    .widget-header {
+      background-color: $dark-theme-color;
+    }
+
+    .message-window {
+      background-color: $dark-background-color;
+    }
+
+    .notices {
+      color: transparentize($light-text-color, 0.3);
+    }
+
+    .message {
+      .text {
+        border: 1px solid $light-text-color;
+      }
+
+      &.from-me {
+        .text {
+          background-color: $light-background-color;
+          color: $dark-text-color;
+        }
+      }
+
+      &.from-support {
+        .text {
+          background-color: $dark-theme-color;
+          color: $light-text-color;
+        }
+      }
+    }
+
+    .input-window {
+      form {
+        border-top: 1px solid $dark-theme-color;
+      }
+
+      input[type="text"] {
+        background-color: $light-background-color;
+        color: $dark-text-color;
+      }
+
+      input[type="submit"] {
+        background-color: $dark-theme-color;
+        color: $light-text-color;
+      }
+    }
+  }
+}

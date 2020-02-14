@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Transition } from 'react-transition-group';
 import Chatbox from './chatbox';
-import './widget.scss';
+import './styles.scss';
 
 class Widget extends Component {
   constructor(props) {
@@ -36,10 +36,10 @@ class Widget extends Component {
     const { opened, showDock } = this.state;
 
     return (
-      <div className="docked-widget">
+      <div className="docked-widget" role="complementary">
         <Transition in={opened} timeout={250} onExited={this.handleWidgetExit}>
           {(status) => (
-            <div className={`widget widget-${status}`}>
+            <div className={`widget widget-${status}`} aria-hidden={!opened}>
               <Chatbox
                 handleToggleOpen={this.handleToggleOpen}
                 opened={opened}
@@ -55,9 +55,10 @@ class Widget extends Component {
             className="dock"
             onClick={this.handleToggleOpen}
             onKeyPress={this.handleToggleOpen}
+            aria-labelledby="open-chatbox-label"
           >
-            <span>Open support chat</span>
-            <span className={`arrow ${opened ? 'opened' : 'closed'}`}>⌃</span>
+            <span id="open-chatbox-label">Open support chat</span>
+            <span className={`arrow ${opened ? 'opened' : 'closed'}`} aria-label={`${opened ? 'Close' : 'Open'} support chat window`}>⌃</span>
           </button>
         )}
       </div>

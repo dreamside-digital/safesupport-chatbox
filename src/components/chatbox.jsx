@@ -179,6 +179,13 @@ class ChatBox extends React.Component {
     this.setState({ messages })
   }
 
+
+  handleEscape = (e) => {
+    if (e.keyCode === 27 && this.props.opened) {
+      this.props.handleToggleOpen()
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
     if (prevState.client !== this.state.client) {
       this.createRoom()
@@ -231,7 +238,12 @@ class ChatBox extends React.Component {
     }
   }
 
+  componentDidMount() {
+    document.addEventListener("keydown", this.handleEscape, false);
+  }
+
   componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleEscape, false);
     this.leaveRoom();
   }
 
@@ -253,12 +265,13 @@ class ChatBox extends React.Component {
   render() {
     const { ready, messages, inputValue, userId, isRoomEncrypted } = this.state;
     const { opened, handleToggleOpen } = this.props;
+    const inputLabel = 'Send a message...'
 
     return (
-      <div id="ocrcc-chatbox">
+      <div id="ocrcc-chatbox" aria-haspopup="dialog" aria-label="Open support chat">
         <div className="widget-header">
           <div className="widget-header-title">
-            { isRoomEncrypted && <span>🔒</span> } Support Chat
+            Support Chat
           </div>
           <button
             type="button"
@@ -284,7 +297,7 @@ class ChatBox extends React.Component {
           </div>
           <div className="notices">
             {
-              isRoomEncrypted && <div>Messages in this chat are secured with end-to-end encryption.</div>
+              isRoomEncrypted && <div role="status">Messages in this chat are secured with end-to-end encryption.</div>
             }
           </div>
         </div>
@@ -294,6 +307,8 @@ class ChatBox extends React.Component {
               type="text"
               onChange={this.handleInputChange}
               value={inputValue}
+              aria-label={inputLabel}
+              placeholder={inputLabel}
               autoFocus={true}
               ref={this.chatboxInput}
             />
