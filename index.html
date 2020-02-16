@@ -4,24 +4,26 @@
     <title>Embeddable Chatbox Demo</title>
   </head>
   <body>
+    <p style="font-family:sans-serif; padding: 3rem 5rem;">
+      <a id="bookmarklet">Bookmarklet (drag it to your bookmarks bar)</a>
+    </p>
     <p style="font-family:sans-serif; padding: 3rem 5rem;">Look down!</p>
 
     <script src="./widget.js"></script>
     <script>
-      var theme = {
-        themeColor: "#008080",
-        lightColor: "#FFF8F0",
-        darkColor: "#22333B",
-        errorColor: "#FFFACD",
-        font: "'Assistant', 'Helvetica', sans-serif",
-        placement: "right"
-      };
 
       EmbeddableWidget.mount({
+        termsUrl: "https://tosdr.org/",
+        privacyStatement: "This chat application does not collect any of your personal data or any data from your use of this service.",
         matrixServerUrl: "https://matrix.rhok.space",
         roomName: "Support Chat",
-        theme: theme
       });
     </script>
+
+    <script>
+       var bookmarklet = "var s= document.createElement('script'); s.setAttribute('src', '"+window.location.href+"bookmarklet.js'); s.setAttribute('crossorigin', 'anonymous'); document.body.appendChild(s);"
+       bookmarklet = '(function(){'+ bookmarklet +'})();'
+       document.querySelector('a#bookmarklet').setAttribute("href", "javascript:" + encodeURIComponent(bookmarklet));
+      </script>
   </body>
 </html>
