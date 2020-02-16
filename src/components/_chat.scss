@@ -11,6 +11,10 @@
   min-height: 180px;
   border: 1px solid $theme-color;
 
+  a {
+    color: inherit;
+  }
+
   .message-window {
     background-color: $light-color;
     flex: 1 1 auto;
@@ -24,6 +28,10 @@
   .notices {
     color: $dark-color;
     font-size: 0.9rem;
+
+    > div {
+      padding-bottom: 0.5rem;
+    }
   }
 
   .message {

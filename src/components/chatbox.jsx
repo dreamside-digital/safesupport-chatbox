@@ -196,7 +196,6 @@ class ChatBox extends React.Component {
         }
       });
 
-
       this.state.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
         if (event.getType() === "m.room.message") {
 
@@ -213,6 +212,10 @@ class ChatBox extends React.Component {
           }
 
           this.handleMessageEvent(event)
+        }
+
+        if (event.getType() === "m.room.encryption") {
+          this.setState({ isRoomEncrypted: true })
         }
       });
 
@@ -264,7 +267,7 @@ class ChatBox extends React.Component {
 
   render() {
     const { ready, messages, inputValue, userId, isRoomEncrypted } = this.state;
-    const { opened, handleToggleOpen } = this.props;
+    const { opened, handleToggleOpen, privacyStatement, termsUrl } = this.props;
     const inputLabel = 'Send a message...'
 
     return (
@@ -296,9 +299,9 @@ class ChatBox extends React.Component {
           }
           </div>
           <div className="notices">
-            {
-              isRoomEncrypted && <div role="status">Messages in this chat are secured with end-to-end encryption.</div>
-            }
+            { privacyStatement && <div>{privacyStatement}</div> }
+            { termsUrl && <div>By using this service you agree to the <a href={termsUrl} target="_blank">Terms of Use</a>.</div> }
+            { isRoomEncrypted && <div role="status">Messages in this chat are secured with end-to-end encryption.</div> }
           </div>
         </div>
         <div className="input-window">
@@ -324,6 +327,8 @@ ChatBox.propTypes = {
   matrixServerUrl: PropTypes.string.isRequired,
   roomName: PropTypes.string.isRequired,
   theme: PropTypes.object,
+  termsUrl: PropTypes.string,
+  privacyStatement: PropTypes.string,
 }
 
 ChatBox.defaultProps = {

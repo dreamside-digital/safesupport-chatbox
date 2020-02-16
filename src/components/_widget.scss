@@ -36,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem;
+  padding: 0.75rem;
   width: 400px;
   max-width: calc(100vw - 10px);
   background: $theme-color;
@@ -47,6 +47,7 @@
   color: $white;
   font-size: 1rem;
   line-height: 1;
+  box-shadow: 0 2px 15px $drop-shadow-color;
 }
 
 
@@ -56,6 +57,7 @@
   border-bottom: none;
   animation-duration: 0.2s;
   animation-fill-mode: forwards;
+  box-shadow: 0 2px 15px $drop-shadow-color;
 
   &-entering {
     animation-name: slideInUp;
