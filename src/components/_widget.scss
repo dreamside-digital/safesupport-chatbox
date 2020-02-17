@@ -124,13 +124,14 @@
   }
 }
 
-@media screen and (max-width: 400px){
+@media screen and (max-width: 420px){
   .docked-widget {
     right: 0;
     left: 0;
   }
 
   .dock, .widget {
+    width: 100vw;
     max-width: 100vw;
   }
 }
