@@ -1,11 +1,29 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-const Message = ({ message, userId }) => {
-  const fromMe = message.sender === userId;
+const Message = ({ message, userId, botId }) => {
+
+  const senderClass = () => {
+    switch (message.sender) {
+      case userId:
+        return 'from-me'
+      case botId:
+        return 'from-bot'
+      default:
+        return 'from-support'
+    }
+  }
+
+  if (message.content.formatted_body) {
+    return (
+      <div className={`message ${senderClass()}`}>
+        <div className="text" dangerouslySetInnerHTML={{__html: message.content.formatted_body}} />
+      </div>
+    )
+  }
 
   return (
-    <div className={`message ${fromMe ? "from-me" : "from-support"}`}>
+    <div className={`message ${senderClass()}`}>
       <div className="text">{ message.content.body }</div>
     </div>
   )

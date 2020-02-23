@@ -16,8 +16,9 @@ import Message from "./message";
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space"
 const DEFAULT_ROOM_NAME = "Support Chat"
-const FACILITATOR_USERNAME = "@help-bot:rhok.space"
+const BOT_USERNAME = "@help-bot:rhok.space"
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
+const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
 const DEFAULT_THEME = {
   themeColor: "#008080", // teal
   lightColor: "#FFF8F0",
@@ -134,7 +135,7 @@ class ChatBox extends React.Component {
     const chatTime = currentDate.toLocaleTimeString()
     return this.state.client.createRoom({
       room_alias_name: `private-support-chat-${uuid()}`,
-      invite: [FACILITATOR_USERNAME], // TODO: create bot user to add
+      invite: [BOT_USERNAME], // TODO: create bot user to add
       visibility: 'private',
       name: `${chatDate} - ${this.props.roomName} - started at ${chatTime}`,
       initial_state: [
@@ -148,7 +149,7 @@ class ChatBox extends React.Component {
     })
     .then(data => {
       this.verifyAllRoomDevices(data.room_id)
-      this.state.client.setPowerLevel(data.room_id, FACILITATOR_USERNAME, 100)
+      this.state.client.setPowerLevel(data.room_id, BOT_USERNAME, 100)
       .then(() => console.log("Set bot power level to 100"))
       .catch(err => console.log("Error setting bot power level", err))
       this.setState({
@@ -193,6 +194,8 @@ class ChatBox extends React.Component {
       content: event.getContent(),
     }
 
+    console.log("INCOMING MESSAGE", message)
+
     const messages = [...this.state.messages]
     messages.push(message)
     this.setState({ messages })
@@ -216,29 +219,31 @@ class ChatBox extends React.Component {
       });
 
       this.state.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
-        if (event.getType() === "m.room.message") {
+        // if (event.getType() === "m.room.message") {
 
-          if (event.status === "sending") {
-            return; // do nothing
-          }
+        //   if (event.status === "not sent") {
+        //     return console.log("message not sent!", event)
+        //   }
 
-          if (event.status === "not sent") {
-            return console.log("message not sent!", event)
-          }
+        //   if (event.isEncrypted()) {
+        //     return console.log("message encrypted")
+        //   }
 
-          if (event.isEncrypted()) {
-            return console.log("message encrypted")
-          }
-
-          this.handleMessageEvent(event)
-        }
+        //   this.handleMessageEvent(event)
+        // }
 
         if (event.getType() === "m.room.encryption") {
-          this.setState({ isRoomEncrypted: true })
-        }
+          const msgList = [...this.state.messages]
+          const encryptionMsg = {
+            id: 'encryption-msg-id',
+            type: 'm.room.message',
+            sender: BOT_USERNAME,
+            roomId: room.room_id,
+            content: { body: ENCRYPTION_NOTICE },
+          }
+          msgList.unshift(encryptionMsg)
 
-        if (event.getType() === "m.notice") {
-          console.log("GOT BOT NOTICE!", event)
+          this.setState({ messages: msgList })
         }
       });
 
@@ -258,11 +263,11 @@ class ChatBox extends React.Component {
       });
     }
 
-    if (prevState.roomId !== this.state.roomId) {
-      this.setState({
-        isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId)
-      })
-    }
+    // if (prevState.roomId !== this.state.roomId) {
+    //   this.setState({
+    //     isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId)
+    //   })
+    // }
 
     if (!prevState.ready && this.state.ready) {
       this.chatboxInput.current.focus()
@@ -298,7 +303,7 @@ class ChatBox extends React.Component {
   }
 
   render() {
-    const { ready, messages, inputValue, userId, isRoomEncrypted, typingStatus } = this.state;
+    const { ready, messages, inputValue, userId, typingStatus } = this.state;
     const { opened, handleToggleOpen, privacyStatement, termsUrl } = this.props;
     const inputLabel = 'Send a message...'
 
@@ -320,23 +325,20 @@ class ChatBox extends React.Component {
 
         <div className="message-window">
           <div className="messages">
-            <div className="notices">
-              { typingStatus && <div>{typingStatus}</div> }
-            </div>
-          {
-            ready ?
-            messages.map((message, index) => {
-              return(
-                <Message key={message.id} message={message} userId={userId} />
-              )
-            }) :
-            <div className="loader">loading...</div>
-          }
-          </div>
-          <div className="notices">
-            { privacyStatement && <div>{privacyStatement}</div> }
-            { termsUrl && <div>By using this service you agree to the <a href={termsUrl} target="_blank">Terms of Use</a>.</div> }
-            { isRoomEncrypted && <div role="status">Messages in this chat are secured with end-to-end encryption.</div> }
+            {
+              ready ?
+              messages.map((message, index) => {
+                return(
+                  <Message key={message.id} message={message} userId={userId} botId={BOT_USERNAME} />
+                )
+              }) :
+              <div className="loader">loading...</div>
+            }
+            { typingStatus &&
+              <div className="notices">
+                <div role="status">{typingStatus}</div>
+              </div>
+            }
           </div>
         </div>
         <div className="input-window">

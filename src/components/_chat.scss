@@ -30,7 +30,8 @@
     font-size: 0.9rem;
 
     > div {
-      padding-bottom: 0.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
     }
   }
 
@@ -41,11 +42,14 @@
     }
 
     .text {
-      padding: 0.5rem 0.75rem;
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
       width: fit-content;
-      border: 1px solid $theme-color;
+    }
+
+    &.from-bot {
+      color: $dark-color;
+      font-size: 0.9rem;
     }
 
     &.from-me {
@@ -53,10 +57,12 @@
       justify-content: flex-end;
 
       .text {
+        border: 1px solid $theme-color;
         background-color: $theme-color;
         color: $white;
         border-radius: 15px 15px 0 15px;
         margin-left: 10%;
+        padding: 0.5rem 0.75rem;
       }
     }
 
@@ -65,10 +71,12 @@
       justify-content: flex-start;
 
       .text {
+        border: 1px solid $theme-color;
         background-color: $white;
         color: $dark-color;
         border-radius: 15px 15px 15px 0;
         margin-right: 10%;
+        padding: 0.5rem 0.75rem;
       }
     }
   }
