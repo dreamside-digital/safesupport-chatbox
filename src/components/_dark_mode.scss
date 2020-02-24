@@ -23,14 +23,16 @@
     }
 
     .message {
-      .text {
-        border: 1px solid $light-text-color;
+      &.from-bot {
+        color: transparentize($light-text-color, 0.3);
+        font-size: 0.9rem;
       }
 
       &.from-me {
         .text {
           background-color: $light-background-color;
           color: $dark-text-color;
+          border: 1px solid $light-text-color;
         }
       }
 
@@ -38,6 +40,7 @@
         .text {
           background-color: $dark-theme-color;
           color: $light-text-color;
+          border: 1px solid $light-text-color;
         }
       }
     }
