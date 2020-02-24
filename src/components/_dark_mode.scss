@@ -4,16 +4,16 @@
     color: $dark-theme-color;
   }
 
+  .widget-header-minimize, .widget-header-close {
+    background: $dark-background-color;
+    color: $light-text-color;
+    border: 1px solid $white;
+  }
   #ocrcc-chatbox {
     .btn-icon {
       color: $light-text-color;
     }
 
-    .widget-header-minimize, .widget-header-close {
-      background: $dark-background-color;
-      color: $light-text-color;
-      border: 1px solid $white;
-    }
 
     .message-window {
       background-color: $dark-background-color;

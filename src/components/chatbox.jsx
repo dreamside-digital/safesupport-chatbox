@@ -24,29 +24,51 @@ const DEFAULT_ROOM_NAME = "Support Chat"
 const BOT_USERNAME = "@help-bot:rhok.space"
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
-const DEFAULT_THEME = {
-  themeColor: "#008080", // teal
-  lightColor: "#FFF8F0",
-  darkColor: "#22333B",
-  errorColor: "#FFFACD",
-  font: "'Assistant', 'Helvetica', sans-serif",
-  placement: "right"
-};
+const INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
+const AGREEMENT_MESSAGE = "Do you want to continue? Type yes or no."
+const CONFIRMATION_MESSAGE = "Starting the chat - a facilitator will be with you soon."
+const EXIT_MESSAGE = "The chat was not started."
+const FACILITATOR_ROOM_ID = '!pYVVPyFKacZeKZbWyz:rhok.space'
+const TERMS_URL="https://tosdr.org/"
+
 
 const initialState = {
   opened: false,
   showDock: true,
   client: null,
-  ready: false,
+  ready: true,
   accessToken: null,
   userId: null,
-  messages: [],
+  messages: [
+    {
+      id: 'intro-msg-id',
+      type: 'm.room.message',
+      sender: BOT_USERNAME,
+      content: { body: INTRO_MESSAGE },
+    },
+    {
+      id: 'terms-msg-id',
+      type: 'm.room.message',
+      sender: BOT_USERNAME,
+      content: {
+        body: `Please read the full terms and conditions at ${TERMS_URL}.`,
+        formatted_body: `Please read the full <a href="${TERMS_URL}">terms and conditions</a>.`
+      }
+    },
+    {
+      id: 'agreement-msg-id',
+      type: 'm.room.message',
+      sender: BOT_USERNAME,
+      content: { body: AGREEMENT_MESSAGE },
+    },
+  ],
   inputValue: "",
   errors: [],
   roomId: null,
   typingStatus: null,
+  awaitingAgreement: true,
+  awaitingFacilitator: false,
 }
-
 
 class ChatBox extends React.Component {
   constructor(props) {
@@ -75,22 +97,29 @@ class ChatBox extends React.Component {
     });
   }
 
-  handleExitChat = () => {
-    this.leaveRoom()
-    .then(() => {
-      this.setState(initialState)
-    })
-    .catch(err => console.log("Error leaving room", err))
+  handleWidgetEnter = () => {
+    this.chatboxInput.current.focus()
   }
 
-  leaveRoom = () => {
-    if (this.state.roomId) {
-      return this.state.client.leave(this.state.roomId)
+  handleExitChat = () => {
+    if (this.state.client) {
+      this.leaveRoom()
+      .then(() => {
+        this.setState(initialState)
+      })
+      .catch(err => console.log("Error leaving room", err))
+    } else {
+      this.setState(initialState)
     }
   }
 
-  initializeClient = () => {
+  leaveRoom = () => {
+    return this.state.client.leave(this.state.roomId)
+  }
+
+  initializeChat = () => {
     // empty registration request to get session
+    this.setState({ ready: false })
     let client = matrix.createClient(this.props.matrixServerUrl)
     return client.registerRequest({})
       .then(data => {
@@ -140,7 +169,7 @@ class ChatBox extends React.Component {
           console.log("Registration error", err)
         })
         .then(() => client.initCrypto())
-        .finally(() => client.startClient())
+        .then(() => client.startClient())
         .then(() => {
           this.setState({
             client: client
@@ -151,9 +180,7 @@ class ChatBox extends React.Component {
 
   verifyAllRoomDevices = async function(roomId) {
     let room = this.state.client.getRoom(roomId);
-    console.log('room', room)
     let members = (await room.getEncryptionTargetMembers()).map(x => x["userId"])
-    console.log('members', members)
     let memberkeys = await this.state.client.downloadKeys(members);
     for (const userId in memberkeys) {
       for (const deviceId in memberkeys[userId]) {
@@ -169,7 +196,7 @@ class ChatBox extends React.Component {
     const chatTime = currentDate.toLocaleTimeString()
     return this.state.client.createRoom({
       room_alias_name: `private-support-chat-${uuid()}`,
-      invite: [BOT_USERNAME], // TODO: create bot user to add
+      invite: [BOT_USERNAME],
       visibility: 'private',
       name: `${chatDate} - ${this.props.roomName} - started at ${chatTime}`,
       initial_state: [
@@ -178,14 +205,13 @@ class ChatBox extends React.Component {
           state_key: '',
           content: ENCRYPTION_CONFIG,
         },
-
       ]
     })
     .then(data => {
       this.verifyAllRoomDevices(data.room_id)
       this.state.client.setPowerLevel(data.room_id, BOT_USERNAME, 100)
-      .then(() => console.log("Set bot power level to 100"))
-      .catch(err => console.log("Error setting bot power level", err))
+        .then(() => console.log("Set bot power level to 100"))
+        .catch(err => console.log("Error setting bot power level", err))
       this.setState({
         roomId: data.room_id
       })
@@ -198,9 +224,7 @@ class ChatBox extends React.Component {
   sendMessage = () => {
     this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue)
       .then((res) => {
-        this.setState({
-          inputValue: "",
-        })
+        this.setState({ inputValue: "" })
         this.chatboxInput.current.focus()
       })
       .catch((err) => {
@@ -262,7 +286,7 @@ class ChatBox extends React.Component {
             roomId: room.room_id,
             content: { body: ENCRYPTION_NOTICE },
           }
-          msgList.unshift(encryptionMsg)
+          msgList.push(encryptionMsg)
 
           this.setState({ messages: msgList })
         }
@@ -282,14 +306,17 @@ class ChatBox extends React.Component {
           this.setState({ typingStatus: null })
         }
       });
+
     }
 
     if (!prevState.ready && this.state.ready) {
       this.chatboxInput.current.focus()
     }
 
-    if (this.state.client === null && !prevState.opened && this.state.opened) {
-      this.initializeClient()
+    console.log('OPENED STATE', this.state.opened)
+
+    if (!prevState.opened && this.state.opened) {
+      this.chatboxInput.current.focus()
     }
   }
 
@@ -310,11 +337,46 @@ class ChatBox extends React.Component {
     e.preventDefault()
     if (!Boolean(this.state.inputValue)) return null;
 
-    if (!this.state.roomId) {
-      return this.createRoom().then(this.sendMessage)
+    if (this.state.awaitingAgreement && !this.state.client) {
+      if (this.state.inputValue.toLowerCase() === 'yes') {
+        const fakeUserMsg = {
+          id: 'fake-msg-id',
+          type: 'm.room.message',
+          sender: 'from-me',
+          content: { body: this.state.inputValue },
+        }
+        const messages = [...this.state.messages]
+        messages.push(fakeUserMsg)
+        this.setState({ inputValue: "", messages })
+
+        return this.initializeChat()
+
+      } else {
+        const fakeUserMsg = {
+          id: 'fake-msg-id',
+          type: 'm.room.message',
+          sender: 'from-me',
+          content: { body: this.state.inputValue },
+        }
+
+        const exitMsg = {
+          id: 'exit-msg-id',
+          type: 'm.room.message',
+          sender: BOT_USERNAME,
+          content: { body: EXIT_MESSAGE },
+        }
+
+        const messages = [...this.state.messages]
+        messages.push(fakeUserMsg)
+        messages.push(exitMsg)
+        this.setState({ inputValue: "", messages })
+      }
     }
 
-    this.sendMessage()
+    if (this.state.client && this.state.roomId) {
+      return this.sendMessage()
+    }
+
   }
 
   render() {
@@ -323,8 +385,9 @@ class ChatBox extends React.Component {
 
     return (
       <div className="docked-widget" role="complementary">
-        <Transition in={opened} timeout={250} onExited={this.handleWidgetExit}>
-          {(status) => (
+        <Transition in={opened} timeout={250} onExited={this.handleWidgetExit} onEntered={this.handleWidgetEnter}>
+          {(status) => {
+            return (
             <div className={`widget widget-${status}`} aria-hidden={!opened}>
               <div id="ocrcc-chatbox" aria-haspopup="dialog">
                 <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />
@@ -332,18 +395,19 @@ class ChatBox extends React.Component {
                 <div className="message-window">
                   <div className="messages">
                     {
-                      ready ?
                       messages.map((message, index) => {
                         return(
                           <Message key={message.id} message={message} userId={userId} botId={BOT_USERNAME} />
                         )
-                      }) :
-                      <div className="loader">loading...</div>
+                      })
                     }
                     { typingStatus &&
                       <div className="notices">
                         <div role="status">{typingStatus}</div>
                       </div>
+                    }
+                    {
+                      !ready && <div className="loader">loading...</div>
                     }
                   </div>
                 </div>
@@ -363,7 +427,8 @@ class ChatBox extends React.Component {
                 </div>
               </div>
             </div>
-          )}
+            )}
+          }
         </Transition>
         {showDock && !roomId && <Dock handleToggleOpen={this.handleToggleOpen} />}
         {showDock && roomId && <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />}
@@ -375,7 +440,6 @@ class ChatBox extends React.Component {
 ChatBox.propTypes = {
   matrixServerUrl: PropTypes.string.isRequired,
   roomName: PropTypes.string.isRequired,
-  theme: PropTypes.object,
   termsUrl: PropTypes.string,
   privacyStatement: PropTypes.string,
 }
@@ -383,7 +447,6 @@ ChatBox.propTypes = {
 ChatBox.defaultProps = {
   matrixServerUrl: DEFAULT_MATRIX_SERVER,
   roomName: DEFAULT_ROOM_NAME,
-  theme: DEFAULT_THEME,
 }
 
 export default ChatBox;

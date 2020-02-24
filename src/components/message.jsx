@@ -5,6 +5,8 @@ const Message = ({ message, userId, botId }) => {
 
   const senderClass = () => {
     switch (message.sender) {
+      case 'from-me':
+        return 'from-me'
       case userId:
         return 'from-me'
       case botId:
