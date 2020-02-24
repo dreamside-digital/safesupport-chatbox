@@ -1,17 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Widget from '../components/widget';
+import Chatbox from '../components/chatbox';
 import '../../vendor/cleanslate.css';
 
-export default class EmbeddableWidget {
+export default class EmbeddableChatbox {
   static el;
 
   static mount({ parentElement = null, ...props } = {}) {
-    const component = <Widget {...props} />; // eslint-disable-line
+    const component = <Chatbox {...props} />; // eslint-disable-line
 
     function doRender() {
-      if (EmbeddableWidget.el) {
-        throw new Error('EmbeddableWidget is already mounted, unmount first');
+      if (EmbeddableChatbox.el) {
+        throw new Error('EmbeddableChatbox is already mounted, unmount first');
       }
 
       const el = document.createElement('div');
@@ -26,7 +26,7 @@ export default class EmbeddableWidget {
         component,
         el,
       );
-      EmbeddableWidget.el = el;
+      EmbeddableChatbox.el = el;
     }
 
     if (document.readyState === 'complete') {
@@ -39,11 +39,11 @@ export default class EmbeddableWidget {
   }
 
   static unmount() {
-    if (!EmbeddableWidget.el) {
-      throw new Error('EmbeddableWidget is not mounted, mount first');
+    if (!EmbeddableChatbox.el) {
+      throw new Error('EmbeddableChatbox is not mounted, mount first');
     }
-    ReactDOM.unmountComponentAtNode(EmbeddableWidget.el);
-    EmbeddableWidget.el.parentNode.removeChild(EmbeddableWidget.el);
-    EmbeddableWidget.el = null;
+    ReactDOM.unmountComponentAtNode(EmbeddableChatbox.el);
+    EmbeddableChatbox.el.parentNode.removeChild(EmbeddableChatbox.el);
+    EmbeddableChatbox.el = null;
   }
 }

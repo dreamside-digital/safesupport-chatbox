@@ -1,6 +1,178 @@
 
-@import url('https://fonts.googleapis.com/css?family=Assistant&display=swap');
 
+@keyframes slideInUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+    display: inherit;
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideOutDown {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    display: none;
+    visibility: hidden;
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+.docked-widget {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 9999;
+  width: 400px;
+}
+
+.dock {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 400px;
+  max-width: calc(100vw - 10px);
+  color: $white;
+  font-family: $theme-font;
+  font-size: 1rem;
+  border: none;
+  color: $white;
+  font-size: 1rem;
+  line-height: 1;
+
+  #open-chatbox-label {
+    background: $theme-color;
+    padding: 0.75rem 1.5rem;
+    flex: 1 1 auto;
+    text-align: left;
+    margin-right: 0.25rem;
+  }
+
+  .label-icon {
+    background: $theme-color;
+    height: 40px;
+    width: 40px;
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+
+.widget {
+  width: 400px;
+  max-width: calc(100vw - 10px);
+  border-bottom: none;
+  animation-duration: 0.2s;
+  animation-fill-mode: forwards;
+
+  &-entering {
+    animation-name: slideInUp;
+  }
+  &-entered {
+    display: inherit;
+    visibility: visible;
+  }
+  &-exiting {
+    animation-name: slideOutDown;
+  }
+  &-exited {
+    display: none;
+    visibility: hidden;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.2rem;
+    justify-content: flex-end;
+
+    &-title {
+      display: flex;
+      flex-grow: 1;
+    }
+
+    &-minimize {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      border: 1px solid $dark-color !important;
+      background: $white;
+      color: $dark-color;
+      flex: 1 1 auto;
+      font-family: $theme-font;
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+
+    &-close {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $dark-color !important;
+      background: $white;
+      border-radius: 40px;
+      height: 40px;
+      width: 40px;
+      margin-left: 0.2rem;
+      color: $dark-color;
+    }
+  }
+  &-body {
+    background: white;
+    padding: 10px;
+    height: 150px;
+  }
+  &-footer {
+    background: green;
+    line-height: 30px;
+    padding-left: 10px;
+  }
+}
+
+.btn-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  transform: rotateX(0deg);
+  transition: all 0.5s linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.arrow {
+  margin-right: 0.5rem;
+  transform: translateY(5px);
+
+  &.opened {
+    color: $dark-color;
+    transform: rotateX(180deg) translateY(5px);
+  }
+
+}
+
+@media screen and (max-width: 420px){
+  .docked-widget {
+    right: 0;
+    left: 0;
+  }
+
+  .dock, .widget {
+    width: 100vw;
+    max-width: 100vw;
+  }
+}
 
 #ocrcc-chatbox {
   font-family: $theme-font;
@@ -9,24 +181,25 @@
   height: 60vh;
   max-height: 100vh;
   min-height: 180px;
-  border: 1px solid $theme-color;
 
   a {
     color: inherit;
   }
 
   .message-window {
-    background-color: $light-color;
+    background-color: $white;
+    border: 1px solid $dark-color;
     flex: 1 1 auto;
     padding: 0.5rem;
     overflow: auto;
     display: flex;
     flex-direction: column-reverse;
     justify-content: space-between;
+    margin-bottom: 0.2rem;
   }
 
   .notices {
-    color: $dark-color;
+    color: $gray-color;
     font-size: 0.9rem;
 
     > div {
@@ -48,7 +221,7 @@
     }
 
     &.from-bot {
-      color: $dark-color;
+      color: $gray-color;
       font-size: 0.9rem;
     }
 
@@ -71,8 +244,8 @@
       justify-content: flex-start;
 
       .text {
-        border: 1px solid $theme-color;
-        background-color: $white;
+        border: 1px solid $light-color;
+        background-color: $light-color;
         color: $dark-color;
         border-radius: 15px 15px 15px 0;
         margin-right: 10%;
@@ -88,17 +261,18 @@
       display: flex;
       align-items: center;
       margin-bottom: 0;
-      border-top: 1px solid $theme-color;
     }
 
     input[type="text"] {
       font-size: 1rem;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem;
       border: none;
       flex: 1 0 auto;
-      border: none;
+      border: 1px solid $dark-color;
+      background: $light-color;
       color: $dark-color;
       font-family: $theme-font;
+      margin-right: 0.2rem;
 
       &:focus {
         border: none;
@@ -112,7 +286,7 @@
       font-size: 1rem;
       color: $white;
       font-weight: bold;
-      border: none;
+      border: 1px solid $theme-color;
       font-family: $theme-font;
       cursor: pointer;
     }

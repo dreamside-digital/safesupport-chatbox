@@ -1,5 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
+import { Transition } from 'react-transition-group';
 import * as util from "util";
 import * as os from "os";
 import * as path from "path";
@@ -12,6 +13,10 @@ import * as matrix from "matrix-js-sdk";
 import {uuid} from "uuidv4"
 
 import Message from "./message";
+import Dock from "./dock";
+import Header from "./header";
+
+import './styles.scss';
 
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space"
@@ -28,30 +33,59 @@ const DEFAULT_THEME = {
   placement: "right"
 };
 
+const initialState = {
+  opened: false,
+  showDock: true,
+  client: null,
+  ready: false,
+  accessToken: null,
+  userId: null,
+  messages: [],
+  inputValue: "",
+  errors: [],
+  roomId: null,
+  typingStatus: null,
+}
+
 
 class ChatBox extends React.Component {
   constructor(props) {
     super(props)
     const client = matrix.createClient(this.props.matrixServerUrl)
-    this.state = {
-      client: null,
-      ready: false,
-      accessToken: null,
-      userId: null,
-      messages: [],
-      inputValue: "",
-      errors: [],
-      roomId: null,
-      typingStatus: null,
-    }
+    this.state = initialState
     this.chatboxInput = React.createRef();
+  }
+
+  handleToggleOpen = () => {
+    this.setState((prev) => {
+      let { showDock } = prev;
+      if (!prev.opened) {
+        showDock = false;
+      }
+      return {
+        showDock,
+        opened: !prev.opened,
+      };
+    });
+  }
+
+  handleWidgetExit = () => {
+    this.setState({
+      showDock: true,
+    });
+  }
+
+  handleExitChat = () => {
+    this.leaveRoom()
+    .then(() => {
+      this.setState(initialState)
+    })
+    .catch(err => console.log("Error leaving room", err))
   }
 
   leaveRoom = () => {
     if (this.state.roomId) {
-      this.state.client.leave(this.state.roomId).then(data => {
-        console.log("Left room", data)
-      })
+      return this.state.client.leave(this.state.roomId)
     }
   }
 
@@ -203,13 +237,13 @@ class ChatBox extends React.Component {
 
 
   handleEscape = (e) => {
-    if (e.keyCode === 27 && this.props.opened) {
-      this.props.handleToggleOpen()
+    if (e.keyCode === 27 && this.state.opened) {
+      this.handleToggleOpen()
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.client !== this.state.client) {
+    if (this.state.client && prevState.client !== this.state.client) {
       this.createRoom()
 
       this.state.client.once('sync', (state, prevState, res) => {
@@ -219,19 +253,6 @@ class ChatBox extends React.Component {
       });
 
       this.state.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
-        // if (event.getType() === "m.room.message") {
-
-        //   if (event.status === "not sent") {
-        //     return console.log("message not sent!", event)
-        //   }
-
-        //   if (event.isEncrypted()) {
-        //     return console.log("message encrypted")
-        //   }
-
-        //   this.handleMessageEvent(event)
-        // }
-
         if (event.getType() === "m.room.encryption") {
           const msgList = [...this.state.messages]
           const encryptionMsg = {
@@ -263,17 +284,11 @@ class ChatBox extends React.Component {
       });
     }
 
-    // if (prevState.roomId !== this.state.roomId) {
-    //   this.setState({
-    //     isRoomEncrypted: this.state.client.isRoomEncrypted(this.state.roomId)
-    //   })
-    // }
-
     if (!prevState.ready && this.state.ready) {
       this.chatboxInput.current.focus()
     }
 
-    if (this.state.client === null && prevProps.status !== "entered" && this.props.status === "entered") {
+    if (this.state.client === null && !prevState.opened && this.state.opened) {
       this.initializeClient()
     }
   }
@@ -303,58 +318,55 @@ class ChatBox extends React.Component {
   }
 
   render() {
-    const { ready, messages, inputValue, userId, typingStatus } = this.state;
-    const { opened, handleToggleOpen, privacyStatement, termsUrl } = this.props;
+    const { ready, messages, inputValue, userId, roomId, typingStatus, opened, showDock } = this.state;
     const inputLabel = 'Send a message...'
 
     return (
-      <div id="ocrcc-chatbox" aria-haspopup="dialog" aria-label="Open support chat">
-        <div className="widget-header">
-          <div className="widget-header-title">
-            Support Chat
-          </div>
-          <button
-            type="button"
-            className={`widget-header-icon`}
-            onClick={handleToggleOpen}
-            onKeyPress={handleToggleOpen}
-          >
-          <span className={`arrow ${opened ? "opened" : "closed"}`}>⌃</span>
-          </button>
-        </div>
+      <div className="docked-widget" role="complementary">
+        <Transition in={opened} timeout={250} onExited={this.handleWidgetExit}>
+          {(status) => (
+            <div className={`widget widget-${status}`} aria-hidden={!opened}>
+              <div id="ocrcc-chatbox" aria-haspopup="dialog">
+                <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />
 
-        <div className="message-window">
-          <div className="messages">
-            {
-              ready ?
-              messages.map((message, index) => {
-                return(
-                  <Message key={message.id} message={message} userId={userId} botId={BOT_USERNAME} />
-                )
-              }) :
-              <div className="loader">loading...</div>
-            }
-            { typingStatus &&
-              <div className="notices">
-                <div role="status">{typingStatus}</div>
+                <div className="message-window">
+                  <div className="messages">
+                    {
+                      ready ?
+                      messages.map((message, index) => {
+                        return(
+                          <Message key={message.id} message={message} userId={userId} botId={BOT_USERNAME} />
+                        )
+                      }) :
+                      <div className="loader">loading...</div>
+                    }
+                    { typingStatus &&
+                      <div className="notices">
+                        <div role="status">{typingStatus}</div>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div className="input-window">
+                  <form onSubmit={this.handleSubmit}>
+                    <input
+                      type="text"
+                      onChange={this.handleInputChange}
+                      value={inputValue}
+                      aria-label={inputLabel}
+                      placeholder={inputLabel}
+                      autoFocus={true}
+                      ref={this.chatboxInput}
+                    />
+                    <input type="submit" value="Send" />
+                  </form>
+                </div>
               </div>
-            }
-          </div>
-        </div>
-        <div className="input-window">
-          <form onSubmit={this.handleSubmit}>
-            <input
-              type="text"
-              onChange={this.handleInputChange}
-              value={inputValue}
-              aria-label={inputLabel}
-              placeholder={inputLabel}
-              autoFocus={true}
-              ref={this.chatboxInput}
-            />
-            <input type="submit" value="Send" />
-          </form>
-        </div>
+            </div>
+          )}
+        </Transition>
+        {showDock && !roomId && <Dock handleToggleOpen={this.handleToggleOpen} />}
+        {showDock && roomId && <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />}
       </div>
     );
   }

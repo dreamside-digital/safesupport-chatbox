@@ -1,21 +1,23 @@
 @media (prefers-color-scheme: dark) {
-  .dock {
-    background: $dark-theme-color;
-  }
 
   .loader {
     color: $dark-theme-color;
   }
 
   #ocrcc-chatbox {
-    border: 1px solid $dark-theme-color;
+    .btn-icon {
+      color: $light-text-color;
+    }
 
-    .widget-header {
-      background-color: $dark-theme-color;
+    .widget-header-minimize, .widget-header-close {
+      background: $dark-background-color;
+      color: $light-text-color;
+      border: 1px solid $white;
     }
 
     .message-window {
       background-color: $dark-background-color;
+      border: 1px solid $white;
     }
 
     .notices {
@@ -30,9 +32,9 @@
 
       &.from-me {
         .text {
-          background-color: $light-background-color;
-          color: $dark-text-color;
-          border: 1px solid $light-text-color;
+          background-color: $theme-color;
+          color: $light-text-color;
+          border: 1px solid $theme-color;
         }
       }
 
@@ -40,24 +42,26 @@
         .text {
           background-color: $dark-theme-color;
           color: $light-text-color;
-          border: 1px solid $light-text-color;
+          border: 1px solid $dark-theme-color;
         }
       }
     }
 
     .input-window {
-      form {
-        border-top: 1px solid $dark-theme-color;
+      input[type="text"] {
+        background-color: $dark-theme-color;
+        color: $light-text-color;
+        border: 1px solid $white;
       }
 
-      input[type="text"] {
-        background-color: $light-background-color;
-        color: $dark-text-color;
+      ::placeholder {
+        color: transparentize($light-text-color, 0.3);
       }
 
       input[type="submit"] {
-        background-color: $dark-theme-color;
+        background-color: $theme-color;
         color: $light-text-color;
+        border: 1px solid $white;
       }
     }
   }

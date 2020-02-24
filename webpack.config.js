@@ -77,12 +77,12 @@ const defaultConfig = {
 
 module.exports = [{
   ...defaultConfig,
-  entry: './src/outputs/embeddable-widget.js',
+  entry: './src/outputs/embeddable-chatbox.js',
   output: {
     path: distDir,
     publicPath: '/',
-    filename: 'widget.js',
-    library: 'EmbeddableWidget',
+    filename: 'chatbox.js',
+    library: 'EmbeddableChatbox',
     libraryExport: 'default',
     libraryTarget: 'window',
   },

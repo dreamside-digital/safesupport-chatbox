@@ -1,11 +1,16 @@
-$light-color: #f6faff;
+@import url('https://fonts.googleapis.com/css?family=Poppins&display=swap');
+
+$purple: #785BEC;
+$charcoal: #828282;
+$light-color: #F2F2F2;
+$gray-color: $charcoal;
 $dark-color: #04090F;
 $yellow: #FFFACD;
 $dark-blue: #2660A4;
 $white: #ffffff;
 $highlight-color: $yellow;
-$theme-color: $dark-blue;
-$theme-font: 'Assistant', 'Helvetica', sans-serif;
+$theme-color: $purple;
+$theme-font: 'Poppins', 'Helvetica', sans-serif;
 $drop-shadow-color: #BDBEBF;
 
 /* Dark mode colors */
@@ -14,4 +19,4 @@ $dark-background-color: #0F1116;
 $light-background-color: #ffffff;
 $light-text-color: #ffffff;
 $dark-text-color: #0F1116;
-$dark-theme-color: #333C4B;
+$dark-theme-color: #4F4F4F;
