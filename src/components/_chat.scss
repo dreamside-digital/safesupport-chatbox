@@ -1,4 +1,4 @@
-* { min-height: 0 } /* hacky fix for overflow scroll bug in nexted flex containers in firefox */
+* { box-sizing: border-box; }
 
 @keyframes slideInUp {
   from {
@@ -55,6 +55,7 @@
     flex: 1 1 auto;
     text-align: left;
     margin-right: 0.25rem;
+    border: 1px solid $theme-color;
   }
 
   .label-icon {
@@ -65,6 +66,22 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    border: 1px solid $theme-color;
+  }
+
+  &:hover {
+    #open-chatbox-label, .label-icon {
+      border: 1px solid $dark-color;
+    }
+  }
+
+  &:focus {
+    outline: none;
+
+    #open-chatbox-label, .label-icon {
+      border: 1px solid $dark-color;
+      background-color: transparentize($theme-color, 0.15);
+    }
   }
 }
 
@@ -140,6 +157,19 @@
     line-height: 30px;
     padding-left: 10px;
   }
+
+  button {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      border-color: $theme-color;
+    }
+
+    &:focus {
+      background: $theme-light-color;
+      outline: none;
+    }
+  }
 }
 
 .btn-icon {
@@ -164,19 +194,6 @@
 
 }
 
-@media screen and (max-width: 420px){
-  .docked-widget {
-    right: 0;
-    left: 0;
-    bottom: 0;
-  }
-
-  .dock, .widget {
-    width: 100vw;
-    max-width: 100vw;
-  }
-}
-
 #ocrcc-chatbox {
   font-family: $theme-font;
   display: flex;
@@ -188,6 +205,11 @@
 
   a {
     color: inherit;
+    transition: all 0.2s ease-in-out;
+
+    &:hover, &:focus {
+      color: $theme-color;
+    }
   }
 
   .message-window {
@@ -279,9 +301,12 @@
       color: $dark-color;
       font-family: $theme-font;
       margin-right: 0.2rem;
+      transition: all 0.2s ease-in-out;
 
       &:focus {
-        border: none;
+        outline: none;
+        border: 1px solid $theme-color;
+        background: $theme-light-color;
       }
     }
 
@@ -292,12 +317,40 @@
       font-size: 1rem;
       color: $white;
       font-weight: bold;
-      border: 1px solid $theme-color;
       font-family: $theme-font;
       cursor: pointer;
       display: flex;
-      flex: 1 0 auto;
+      flex: 0 1 auto;
+      border: 1px solid $theme-color;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        border: 1px solid $dark-color;
+      }
+
+      &:focus {
+        outline: none;
+        border: 1px solid $dark-color;
+        background-color: transparentize($theme-color, 0.15);
+      }
     }
   }
 
+}
+
+@media screen and (max-width: 420px){
+  .docked-widget {
+    right: 0;
+    left: 0;
+    bottom: 0;
+  }
+
+  .dock, .widget {
+    width: 100vw;
+    max-width: 100vw;
+  }
+
+  #ocrcc-chatbox {
+    height: 80vh;
+  }
 }

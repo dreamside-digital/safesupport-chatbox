@@ -313,8 +313,6 @@ class ChatBox extends React.Component {
       this.chatboxInput.current.focus()
     }
 
-    console.log('OPENED STATE', this.state.opened)
-
     if (!prevState.opened && this.state.opened) {
       this.chatboxInput.current.focus()
     }
@@ -345,8 +343,16 @@ class ChatBox extends React.Component {
           sender: 'from-me',
           content: { body: this.state.inputValue },
         }
+
+        const confirmationMsg = {
+          id: 'confirmation-msg-id',
+          type: 'm.room.message',
+          sender: BOT_USERNAME,
+          content: { body: CONFIRMATION_MESSAGE },
+        }
         const messages = [...this.state.messages]
         messages.push(fakeUserMsg)
+        messages.push(confirmationMsg)
         this.setState({ inputValue: "", messages })
 
         return this.initializeChat()
