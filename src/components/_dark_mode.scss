@@ -8,13 +8,36 @@
     background: $dark-background-color;
     color: $light-text-color;
     border: 1px solid $white;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      border-color: $theme-color;
+    }
+
+    &:focus {
+      background: $dark-theme-color;
+      outline: none;
+    }
+  }
+
+  .widget {
+    button {
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        border-color: $theme-color;
+      }
+
+      &:focus {
+        background: $dark-theme-color;
+        outline: none;
+      }
+    }
   }
   #ocrcc-chatbox {
     .btn-icon {
       color: $light-text-color;
     }
-
-
     .message-window {
       background-color: $dark-background-color;
       border: 1px solid $white;
@@ -49,9 +72,14 @@
 
     .input-window {
       input[type="text"] {
-        background-color: $dark-theme-color;
+        background-color: $dark-background-color;
         color: $light-text-color;
         border: 1px solid $white;
+
+        &:focus {
+          border: 1px solid $theme-color;
+          background: $dark-theme-color;
+        }
       }
 
       ::placeholder {
@@ -63,6 +91,10 @@
         color: $light-text-color;
         border: 1px solid $white;
       }
+    }
+
+    .highlight-text {
+      color: $light-text-color;
     }
   }
 }

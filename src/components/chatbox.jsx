@@ -25,8 +25,8 @@ const BOT_USERNAME = "@help-bot:rhok.space"
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
 const INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
-const AGREEMENT_MESSAGE = "Do you want to continue? Type yes or no."
-const CONFIRMATION_MESSAGE = "Starting the chat - a facilitator will be with you soon."
+const AGREEMENT_MESSAGE = "👉 Do you want to continue? Type yes or no."
+const CONFIRMATION_MESSAGE = "Waiting for a facilitator to join the chat..."
 const EXIT_MESSAGE = "The chat was not started."
 const FACILITATOR_ROOM_ID = '!pYVVPyFKacZeKZbWyz:rhok.space'
 const TERMS_URL="https://tosdr.org/"
@@ -59,8 +59,7 @@ const initialState = {
       id: 'agreement-msg-id',
       type: 'm.room.message',
       sender: BOT_USERNAME,
-      content: { body: AGREEMENT_MESSAGE },
-    },
+      content: { body: AGREEMENT_MESSAGE }, },
   ],
   inputValue: "",
   errors: [],
@@ -76,6 +75,7 @@ class ChatBox extends React.Component {
     const client = matrix.createClient(this.props.matrixServerUrl)
     this.state = initialState
     this.chatboxInput = React.createRef();
+    this.messageWindow = React.createRef();
   }
 
   handleToggleOpen = () => {
@@ -212,8 +212,18 @@ class ChatBox extends React.Component {
       this.state.client.setPowerLevel(data.room_id, BOT_USERNAME, 100)
         .then(() => console.log("Set bot power level to 100"))
         .catch(err => console.log("Error setting bot power level", err))
+
+      const confirmationMsg = {
+        id: 'confirmation-msg-id',
+        type: 'm.room.message',
+        sender: BOT_USERNAME,
+        content: { body: CONFIRMATION_MESSAGE },
+      }
+      const messages = [...this.state.messages]
+      messages.push(confirmationMsg)
       this.setState({
-        roomId: data.room_id
+        roomId: data.room_id,
+        messages
       })
     })
     .catch(err => {
@@ -316,6 +326,10 @@ class ChatBox extends React.Component {
     if (!prevState.opened && this.state.opened) {
       this.chatboxInput.current.focus()
     }
+
+    if (prevState.messages.length !== this.state.messages.length) {
+      this.messageWindow.current.scrollTo(0, this.messageWindow.current.scrollHeight)
+    }
   }
 
   componentDidMount() {
@@ -344,15 +358,8 @@ class ChatBox extends React.Component {
           content: { body: this.state.inputValue },
         }
 
-        const confirmationMsg = {
-          id: 'confirmation-msg-id',
-          type: 'm.room.message',
-          sender: BOT_USERNAME,
-          content: { body: CONFIRMATION_MESSAGE },
-        }
         const messages = [...this.state.messages]
         messages.push(fakeUserMsg)
-        messages.push(confirmationMsg)
         this.setState({ inputValue: "", messages })
 
         return this.initializeChat()
@@ -398,7 +405,7 @@ class ChatBox extends React.Component {
               <div id="ocrcc-chatbox" aria-haspopup="dialog">
                 <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />
 
-                <div className="message-window">
+                <div className="message-window" ref={this.messageWindow}>
                   <div className="messages">
                     {
                       messages.map((message, index) => {

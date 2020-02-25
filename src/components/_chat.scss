@@ -51,11 +51,13 @@
 
   #open-chatbox-label {
     background: $theme-color;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem;
     flex: 1 1 auto;
     text-align: left;
     margin-right: 0.25rem;
     border: 1px solid $theme-color;
+    border-radius: 10px;
+    transition: all 0.2s ease-in-out;
   }
 
   .label-icon {
@@ -67,6 +69,7 @@
     justify-content: center;
     align-items: center;
     border: 1px solid $theme-color;
+    transition: all 0.2s ease-in-out;
   }
 
   &:hover {
@@ -131,6 +134,18 @@
       font-family: $theme-font;
       font-size: 1rem;
       padding: 0.5rem;
+      border-radius: 10px;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        border: 1px solid $theme-color;
+      }
+
+      &:focus {
+        outline: none;
+        border: 1px solid $theme-color;
+        background-color: $theme-light-color;
+      }
     }
 
     &-close {
@@ -145,6 +160,17 @@
       width: 40px;
       margin-left: 0.2rem;
       color: $dark-color;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        border: 1px solid $theme-color;
+      }
+
+      &:focus {
+        outline: none;
+        border: 1px solid $theme-color;
+        background-color: $theme-light-color;
+      }
     }
   }
   &-body {
@@ -198,9 +224,8 @@
   font-family: $theme-font;
   display: flex;
   flex-direction: column;
-  height: 60vh;
+  height: calc(40vh + 180px);
   max-height: 100vh;
-  min-height: 180px;
   padding: 5px;
 
   a {
@@ -222,6 +247,7 @@
     flex-direction: column-reverse;
     justify-content: space-between;
     margin-bottom: 0.2rem;
+    border-radius: 10px;
   }
 
   .notices {
@@ -302,6 +328,7 @@
       font-family: $theme-font;
       margin-right: 0.2rem;
       transition: all 0.2s ease-in-out;
+      border-radius: 10px;
 
       &:focus {
         outline: none;
@@ -323,6 +350,7 @@
       flex: 0 1 auto;
       border: 1px solid $theme-color;
       transition: all 0.2s ease-in-out;
+      border-radius: 10px;
 
       &:hover {
         border: 1px solid $dark-color;
@@ -334,6 +362,10 @@
         background-color: transparentize($theme-color, 0.15);
       }
     }
+  }
+
+  .highlight-text {
+    color: $theme-color;
   }
 
 }
@@ -351,6 +383,6 @@
   }
 
   #ocrcc-chatbox {
-    height: 80vh;
+    height: calc(180px + 60vh);
   }
 }
