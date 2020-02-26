@@ -12,10 +12,13 @@
 
     &:hover {
       border-color: $theme-color;
+      box-shadow: inset 0px 0px 0px 1px $theme-color;
     }
 
     &:focus {
-      background: $dark-theme-color;
+      border-color: $theme-color;
+      background: $dark-theme-highlight-color;
+      box-shadow: inset 0px 0px 0px 1px $theme-color;
       outline: none;
     }
   }
@@ -26,10 +29,12 @@
 
       &:hover {
         border-color: $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $theme-color;
       }
 
       &:focus {
-        background: $dark-theme-color;
+        background: $dark-theme-highlight-color;
+        box-shadow: inset 0px 0px 0px 1px $theme-color;
         outline: none;
       }
     }
@@ -76,9 +81,16 @@
         color: $light-text-color;
         border: 1px solid $white;
 
-        &:focus {
+        &:hover {
           border: 1px solid $theme-color;
-          background: $dark-theme-color;
+          box-shadow: inset 0px 0px 0px 1px $theme-color;
+        }
+
+        &:focus {
+          outline: none;
+          border: 1px solid $theme-color;
+          box-shadow: inset 0px 0px 0px 1px $theme-color;
+          background: $dark-theme-highlight-color;
         }
       }
 
@@ -87,9 +99,21 @@
       }
 
       input[type="submit"] {
-        background-color: $theme-color;
+        background-color: $dark-theme-color;
         color: $light-text-color;
         border: 1px solid $white;
+
+        &:hover {
+          border: 1px solid $theme-color;
+          box-shadow: inset 0px 0px 0px 1px $theme-color;
+        }
+
+        &:focus {
+          outline: none;
+          border: 1px solid $theme-color;
+          box-shadow: inset 0px 0px 0px 1px $theme-color;
+          background-color: $dark-theme-highlight-color;
+        }
       }
     }
 

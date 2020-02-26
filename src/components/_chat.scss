@@ -75,6 +75,7 @@
   &:hover {
     #open-chatbox-label, .label-icon {
       border: 1px solid $dark-color;
+      box-shadow: inset 0px 0px 0px 1px $dark-color;
     }
   }
 
@@ -83,6 +84,7 @@
 
     #open-chatbox-label, .label-icon {
       border: 1px solid $dark-color;
+      box-shadow: inset 0px 0px 0px 1px $dark-color;
       background-color: transparentize($theme-color, 0.15);
     }
   }
@@ -138,12 +140,12 @@
       transition: all 0.2s ease-in-out;
 
       &:hover {
-        border: 1px solid $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
       }
 
       &:focus {
         outline: none;
-        border: 1px solid $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
         background-color: $theme-light-color;
       }
     }
@@ -163,12 +165,12 @@
       transition: all 0.2s ease-in-out;
 
       &:hover {
-        border: 1px solid $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
       }
 
       &:focus {
         outline: none;
-        border: 1px solid $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
         background-color: $theme-light-color;
       }
     }
@@ -188,7 +190,7 @@
     transition: all 0.2s ease-in-out;
 
     &:hover {
-      border-color: $theme-color;
+      box-shadow: inset 0px 0px 0px 1px $dark-color;
     }
 
     &:focus {
@@ -330,9 +332,13 @@
       transition: all 0.2s ease-in-out;
       border-radius: 10px;
 
+      &:hover {
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+      }
+
       &:focus {
         outline: none;
-        border: 1px solid $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
         background: $theme-light-color;
       }
     }
@@ -354,11 +360,13 @@
 
       &:hover {
         border: 1px solid $dark-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
       }
 
       &:focus {
         outline: none;
         border: 1px solid $dark-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
         background-color: transparentize($theme-color, 0.15);
       }
     }
