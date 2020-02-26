@@ -39,6 +39,8 @@ const initialState = {
   ready: true,
   accessToken: null,
   userId: null,
+  password: null,
+  localStorage: null,
   messages: [
     {
       id: 'intro-msg-id',
@@ -103,18 +105,35 @@ class ChatBox extends React.Component {
 
   handleExitChat = () => {
     if (this.state.client) {
-      this.leaveRoom()
-      .then(() => {
-        this.setState(initialState)
-      })
-      .catch(err => console.log("Error leaving room", err))
+      this.exitChat()
     } else {
       this.setState(initialState)
     }
   }
 
-  leaveRoom = () => {
+  exitChat = () => {
+    if (!this.state.client) return null;
     return this.state.client.leave(this.state.roomId)
+      .then(() => {
+        const auth = {
+          type: 'm.login.password',
+          // TODO: Remove `user` once servers support proper UIA
+          // See https://github.com/vector-im/riot-web/issues/10312
+          user: this.state.userId,
+          identifier: {
+              type: "m.id.user",
+              user: this.state.userId,
+          },
+          password: this.state.password,
+        };
+        this.state.client.deactivateAccount(auth, true)
+      })
+      .then(() => this.state.client.stopClient())
+      .then(() => this.state.client.clearStores())
+      .then(() => {
+        this.state.localStorage.clear()
+        this.setState(initialState)
+      })
   }
 
   initializeChat = () => {
@@ -150,7 +169,9 @@ class ChatBox extends React.Component {
           this.setState({
             accessToken: data.access_token,
             userId: data.user_id,
-            username: username
+            username: username,
+            password: password,
+            localStorage: localStorage,
           })
 
           // create new client with full options
@@ -334,11 +355,13 @@ class ChatBox extends React.Component {
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleEscape, false);
+    window.addEventListener('beforeunload', this.exitChat)
   }
 
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleEscape, false);
-    this.leaveRoom();
+    window.removeEventListener('beforeunload', this.exitChat)
+    this.exitChat();
   }
 
   handleInputChange = e => {
