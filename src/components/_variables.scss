@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css?family=Assistant&display=swap');
 
 $purple: #785BEC;
-$light-purple: #f1eefd;
+$light-purple: #ebe6fc;
+$medium-purple: #4D3A97;
 $charcoal: #828282;
 $light-color: #F2F2F2;
 $gray-color: $charcoal;
@@ -13,7 +14,8 @@ $highlight-color: $yellow;
 $theme-color: $purple;
 $theme-light-color: $light-purple;
 $theme-font: 'Assistant', 'Helvetica', sans-serif;
-$drop-shadow-color: #BDBEBF;
+$theme-highlight-color: $medium-purple;
+
 
 /* Dark mode colors */
 

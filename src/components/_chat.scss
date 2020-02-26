@@ -85,7 +85,7 @@
     #open-chatbox-label, .label-icon {
       border: 1px solid $dark-color;
       box-shadow: inset 0px 0px 0px 1px $dark-color;
-      background-color: transparentize($theme-color, 0.15);
+      background-color: $theme-highlight-color;
     }
   }
 }
@@ -325,7 +325,7 @@
       display: flex;
       flex: 1 1 auto;
       border: 1px solid $dark-color;
-      background: $light-color;
+      background: $white;
       color: $dark-color;
       font-family: $theme-font;
       margin-right: 0.2rem;
@@ -367,7 +367,7 @@
         outline: none;
         border: 1px solid $dark-color;
         box-shadow: inset 0px 0px 0px 1px $dark-color;
-        background-color: transparentize($theme-color, 0.15);
+        background-color: $theme-highlight-color;
       }
     }
   }

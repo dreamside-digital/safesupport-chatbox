@@ -4,6 +4,19 @@
     color: $dark-theme-color;
   }
 
+  .dock {
+    #open-chatbox-label, .label-icon {
+      border-color: $white;
+    }
+
+    &:hover {
+      #open-chatbox-label, .label-icon {
+        border: 1px solid $dark-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+      }
+    }
+  }
+
   .widget-header-minimize, .widget-header-close {
     background: $dark-background-color;
     color: $light-text-color;
