@@ -1,4 +1,4 @@
-Embeddable Matrix Chatbox
+# Embeddable Matrix Chatbox
 
 ![Demo video of chatbox](https://media.giphy.com/media/Js8Wm7DdbkuFK4MJUC/giphy.gif)
 
