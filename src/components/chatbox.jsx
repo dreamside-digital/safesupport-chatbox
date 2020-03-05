@@ -19,67 +19,63 @@ import Header from "./header";
 import './styles.scss';
 
 
-const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space"
-const DEFAULT_ROOM_NAME = "Support Chat"
-const BOT_USERNAME = "@help-bot:rhok.space"
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
 const UNENCRYPTION_NOTICE = "End-to-end message encryption is not available on this browser."
-const INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
-const AGREEMENT_MESSAGE = "👉 Do you want to continue? Type yes or no."
-const CONFIRMATION_MESSAGE = "Waiting for a facilitator to join the chat..."
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
-const EXIT_MESSAGE = "The chat was not started."
-const FACILITATOR_ROOM_ID = '!pYVVPyFKacZeKZbWyz:rhok.space'
-const TERMS_URL="https://tosdr.org/"
-const SUPPORT_SEEKER_DISPLAY_NAME="Anonymous"
-const MATRIX_ERROR_MESSAGE = "There was an error in the messaging service. Please try again later."
 
+const DEFAULT_ROOM_NAME = "Support Chat"
+const DEFAULT_INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
+const DEFAULT_AGREEMENT_MESSAGE = "👉 Do you want to continue? Type yes or no."
+const DEFAULT_CONFIRMATION_MESSAGE = "Waiting for a facilitator to join the chat..."
+const DEFAULT_EXIT_MESSAGE = "The chat was not started."
+const DEFAULT_ANONYMOUS_DISPLAY_NAME="Anonymous"
+const DEFAULT_CHAT_UNAVAILABLE_MESSAGE = "The chat service is not available right now. Please try again later."
 
-const initialState = {
-  opened: false,
-  showDock: true,
-  client: null,
-  ready: true,
-  accessToken: null,
-  userId: null,
-  password: null,
-  localStorage: null,
-  messages: [
-    {
-      id: 'intro-msg-id',
-      type: 'm.room.message',
-      sender: BOT_USERNAME,
-      content: { body: INTRO_MESSAGE },
-    },
-    {
-      id: 'terms-msg-id',
-      type: 'm.room.message',
-      sender: BOT_USERNAME,
-      content: {
-        body: `Please read the full terms and conditions at ${TERMS_URL}.`,
-        formatted_body: `Please read the full <a href="${TERMS_URL}">terms and conditions</a>.`
-      }
-    },
-    {
-      id: 'agreement-msg-id',
-      type: 'm.room.message',
-      sender: BOT_USERNAME,
-      content: { body: AGREEMENT_MESSAGE }, },
-  ],
-  inputValue: "",
-  errors: [],
-  roomId: null,
-  typingStatus: null,
-  awaitingAgreement: true,
-  awaitingFacilitator: false,
-}
 
 class ChatBox extends React.Component {
   constructor(props) {
     super(props)
     const client = matrix.createClient(this.props.matrixServerUrl)
-    this.state = initialState
+    this.initialState = {
+      opened: false,
+      showDock: true,
+      client: null,
+      ready: true,
+      accessToken: null,
+      userId: null,
+      password: null,
+      localStorage: null,
+      messages: [
+        {
+          id: 'intro-msg-id',
+          type: 'm.room.message',
+          sender: this.props.botUsername,
+          content: { body: this.props.introMessage },
+        },
+        {
+          id: 'terms-msg-id',
+          type: 'm.room.message',
+          sender: this.props.botUsername,
+          content: {
+            body: `Please read the full terms and conditions at ${this.props.termsUrl}.`,
+            formatted_body: `Please read the full <a href="${this.props.termsUrl}">terms and conditions</a>.`
+          }
+        },
+        {
+          id: 'agreement-msg-id',
+          type: 'm.room.message',
+          sender: this.props.botUsername,
+          content: { body: this.props.agreementMessage }, },
+      ],
+      inputValue: "",
+      errors: [],
+      roomId: null,
+      typingStatus: null,
+      awaitingAgreement: true,
+      awaitingFacilitator: false,
+    }
+    this.state = this.initialState
     this.chatboxInput = React.createRef();
     this.messageWindow = React.createRef();
   }
@@ -111,7 +107,7 @@ class ChatBox extends React.Component {
     if (this.state.client) {
       this.exitChat()
     } else {
-      this.setState(initialState)
+      this.setState(this.initialState)
     }
   }
 
@@ -121,8 +117,6 @@ class ChatBox extends React.Component {
       .then(() => {
         const auth = {
           type: 'm.login.password',
-          // TODO: Remove `user` once servers support proper UIA
-          // See https://github.com/vector-im/riot-web/issues/10312
           user: this.state.userId,
           identifier: {
               type: "m.id.user",
@@ -136,14 +130,21 @@ class ChatBox extends React.Component {
       .then(() => this.state.client.clearStores())
       .then(() => {
         this.state.localStorage.clear()
-        this.setState(initialState)
+        this.setState(this.initialState)
       })
   }
 
   initializeChat = () => {
     // empty registration request to get session
     this.setState({ ready: false })
-    let client = matrix.createClient(this.props.matrixServerUrl)
+    let client;
+
+    try {
+      client = matrix.createClient(this.props.matrixServerUrl)
+    } catch {
+      return this.handleInitError()
+    }
+
     return client.registerRequest({})
       .then(data => {
         console.log("Empty registration request to get session", data)
@@ -187,22 +188,23 @@ class ChatBox extends React.Component {
             userId: data.user_id,
             deviceId: data.device_id,
             sessionStore: new matrix.WebStorageSessionStore(localStorage),
+            displayName: this.props.anonymousDisplayName,
           }
 
           client = matrix.createClient(opts)
-          client.setDisplayName(SUPPORT_SEEKER_DISPLAY_NAME)
         })
         .catch(err => {
-          console.log("Registration error", err)
+          this.handleInitError()
         })
         .then(() => client.initCrypto())
+        .catch(err => this.initializeUnencryptedChat())
         .then(() => client.startClient())
         .then(() => {
           this.setState({
             client: client
           })
         })
-        .catch(err => this.initializeUnencryptedChat())
+        .catch(err => this.handleInitError())
     })
   }
 
@@ -213,11 +215,16 @@ class ChatBox extends React.Component {
       baseUrl: this.props.matrixServerUrl,
       accessToken: this.state.accessToken,
       userId: this.state.userId,
-      deviceId: this.state.deviceId
+      deviceId: this.state.deviceId,
+      displayName: this.props.anonymousDisplayName,
     }
 
-    let client = matrix.createClient(opts)
-    client.setDisplayName(SUPPORT_SEEKER_DISPLAY_NAME)
+    let client;
+    try {
+      client = matrix.createClient(opts)
+    } catch {
+      return this.handleInitError()
+    }
     return client.startClient()
       .then(() => {
         this.setState({
@@ -225,6 +232,12 @@ class ChatBox extends React.Component {
           isCryptoEnabled: false,
         })
       })
+      .catch(err => this.handleInitError())
+  }
+
+  handleInitError = () => {
+    this.displayBotMessage({ body: this.props.chatUnavailableMessage })
+    this.setState({ ready: true })
   }
 
   handleDecryptionError = () => {
@@ -242,7 +255,6 @@ class ChatBox extends React.Component {
     let memberkeys = await this.state.client.downloadKeys(members);
     for (const userId in memberkeys) {
       for (const deviceId in memberkeys[userId]) {
-        console.log("verifying device", `${userId} - ${deviceId}`)
         await this.state.client.setDeviceVerified(userId, deviceId);
       }
     }
@@ -254,9 +266,9 @@ class ChatBox extends React.Component {
     const chatTime = currentDate.toLocaleTimeString()
     let roomConfig = {
       room_alias_name: `private-support-chat-${uuid()}`,
-      invite: [BOT_USERNAME],
+      invite: [this.props.botUsername],
       visibility: 'private',
-      name: `${chatDate} - ${this.props.roomName} - started at ${chatTime}`,
+      name: `${chatTime}, ${chatDate} - ${this.props.roomName}`,
     }
 
     const isCryptoEnabled = await this.state.client.isCryptoEnabled()
@@ -273,7 +285,7 @@ class ChatBox extends React.Component {
 
     const { room_id } = await this.state.client.createRoom(roomConfig)
 
-    this.state.client.setPowerLevel(room_id, BOT_USERNAME, 100)
+    this.state.client.setPowerLevel(room_id, this.props.botUsername, 100)
 
     if (isCryptoEnabled) {
       this.verifyAllRoomDevices(room_id)
@@ -281,7 +293,7 @@ class ChatBox extends React.Component {
       this.displayBotMessage({ body: UNENCRYPTION_NOTICE })
     }
 
-    this.displayBotMessage({ body: CONFIRMATION_MESSAGE })
+    this.displayBotMessage({ body: this.props.confirmationMessage })
 
     this.setState({
       roomId: room_id,
@@ -330,7 +342,7 @@ class ChatBox extends React.Component {
     const msg = {
       id: uuid(),
       type: 'm.room.message',
-      sender: BOT_USERNAME,
+      sender: this.props.botUsername,
       roomId: roomId || this.state.roomId,
       content: content,
     }
@@ -443,7 +455,7 @@ class ChatBox extends React.Component {
 
       } else {
         this.displayFakeMessage({ body: this.state.inputValue }, 'from-me')
-        this.displayBotMessage({ body: EXIT_MESSAGE })
+        this.displayBotMessage({ body: this.props.exitMessage })
         return this.setState({ inputValue: "" })
       }
     }
@@ -471,7 +483,7 @@ class ChatBox extends React.Component {
                     {
                       messages.map((message, index) => {
                         return(
-                          <Message key={message.id} message={message} userId={userId} botId={BOT_USERNAME} />
+                          <Message key={message.id} message={message} userId={userId} botId={this.props.botUsername} />
                         )
                       })
                     }
@@ -513,14 +525,25 @@ class ChatBox extends React.Component {
 
 ChatBox.propTypes = {
   matrixServerUrl: PropTypes.string.isRequired,
-  roomName: PropTypes.string.isRequired,
-  termsUrl: PropTypes.string,
-  privacyStatement: PropTypes.string,
+  botUsername: PropTypes.string.isRequired,
+  termsUrl: PropTypes.string.isRequired,
+  introMessage: PropTypes.string.isRequired,
+  roomName: PropTypes.string,
+  agreementMessage: PropTypes.string,
+  confirmationMessage: PropTypes.string,
+  exitMessage: PropTypes.string,
+  chatUnavailableMessage: PropTypes.string,
+  anonymousDisplayName: PropTypes.string,
 }
 
 ChatBox.defaultProps = {
-  matrixServerUrl: DEFAULT_MATRIX_SERVER,
   roomName: DEFAULT_ROOM_NAME,
+  introMessage: DEFAULT_INTRO_MESSAGE,
+  agreementMessage: DEFAULT_AGREEMENT_MESSAGE,
+  confirmationMessage: DEFAULT_CONFIRMATION_MESSAGE,
+  exitMessage: DEFAULT_EXIT_MESSAGE,
+  anonymousDisplayName: DEFAULT_ANONYMOUS_DISPLAY_NAME,
+  chatUnavailableMessage: DEFAULT_CHAT_UNAVAILABLE_MESSAGE,
 }
 
 export default ChatBox;
