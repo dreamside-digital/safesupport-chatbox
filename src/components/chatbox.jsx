@@ -24,12 +24,16 @@ const DEFAULT_ROOM_NAME = "Support Chat"
 const BOT_USERNAME = "@help-bot:rhok.space"
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
+const UNENCRYPTION_NOTICE = "End-to-end message encryption is not available on this browser."
 const INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
 const AGREEMENT_MESSAGE = "👉 Do you want to continue? Type yes or no."
 const CONFIRMATION_MESSAGE = "Waiting for a facilitator to join the chat..."
+const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
 const EXIT_MESSAGE = "The chat was not started."
 const FACILITATOR_ROOM_ID = '!pYVVPyFKacZeKZbWyz:rhok.space'
 const TERMS_URL="https://tosdr.org/"
+const SUPPORT_SEEKER_DISPLAY_NAME="Anonymous"
+const MATRIX_ERROR_MESSAGE = "There was an error in the messaging service. Please try again later."
 
 
 const initialState = {
@@ -172,6 +176,8 @@ class ChatBox extends React.Component {
             username: username,
             password: password,
             localStorage: localStorage,
+            sessionId: sessionId,
+            deviceId: data.device_id,
           })
 
           // create new client with full options
@@ -184,7 +190,7 @@ class ChatBox extends React.Component {
           }
 
           client = matrix.createClient(opts)
-          client.setDisplayName("Anonymous")
+          client.setDisplayName(SUPPORT_SEEKER_DISPLAY_NAME)
         })
         .catch(err => {
           console.log("Registration error", err)
@@ -196,7 +202,38 @@ class ChatBox extends React.Component {
             client: client
           })
         })
+        .catch(err => this.initializeUnencryptedChat())
     })
+  }
+
+  initializeUnencryptedChat = () => {
+    this.setState({ ready: false })
+
+    let opts = {
+      baseUrl: this.props.matrixServerUrl,
+      accessToken: this.state.accessToken,
+      userId: this.state.userId,
+      deviceId: this.state.deviceId
+    }
+
+    let client = matrix.createClient(opts)
+    client.setDisplayName(SUPPORT_SEEKER_DISPLAY_NAME)
+    return client.startClient()
+      .then(() => {
+        this.setState({
+          client: client,
+          isCryptoEnabled: false,
+        })
+      })
+  }
+
+  handleDecryptionError = () => {
+    this.displayBotMessage({ body: RESTARTING_UNENCRYPTED_CHAT_MESSAGE })
+
+    this.state.client.leave(this.state.roomId)
+      .then(() => this.state.client.stopClient())
+      .then(() => this.state.client.clearStores())
+      .then(() => this.initializeUnencryptedChat())
   }
 
   verifyAllRoomDevices = async function(roomId) {
@@ -211,44 +248,44 @@ class ChatBox extends React.Component {
     }
   }
 
-  createRoom = () => {
+  createRoom = async function() {
     const currentDate = new Date()
     const chatDate = currentDate.toLocaleDateString()
     const chatTime = currentDate.toLocaleTimeString()
-    return this.state.client.createRoom({
+    let roomConfig = {
       room_alias_name: `private-support-chat-${uuid()}`,
       invite: [BOT_USERNAME],
       visibility: 'private',
       name: `${chatDate} - ${this.props.roomName} - started at ${chatTime}`,
-      initial_state: [
+    }
+
+    const isCryptoEnabled = await this.state.client.isCryptoEnabled()
+
+    if (isCryptoEnabled) {
+      roomConfig.initial_state = [
         {
           type: 'm.room.encryption',
           state_key: '',
           content: ENCRYPTION_CONFIG,
         },
       ]
-    })
-    .then(data => {
-      this.verifyAllRoomDevices(data.room_id)
-      this.state.client.setPowerLevel(data.room_id, BOT_USERNAME, 100)
-        .then(() => console.log("Set bot power level to 100"))
-        .catch(err => console.log("Error setting bot power level", err))
+    }
 
-      const confirmationMsg = {
-        id: 'confirmation-msg-id',
-        type: 'm.room.message',
-        sender: BOT_USERNAME,
-        content: { body: CONFIRMATION_MESSAGE },
-      }
-      const messages = [...this.state.messages]
-      messages.push(confirmationMsg)
-      this.setState({
-        roomId: data.room_id,
-        messages
-      })
-    })
-    .catch(err => {
-      console.log("Unable to create room", err)
+    const { room_id } = await this.state.client.createRoom(roomConfig)
+
+    this.state.client.setPowerLevel(room_id, BOT_USERNAME, 100)
+
+    if (isCryptoEnabled) {
+      this.verifyAllRoomDevices(room_id)
+    } else {
+      this.displayBotMessage({ body: UNENCRYPTION_NOTICE })
+    }
+
+    this.displayBotMessage({ body: CONFIRMATION_MESSAGE })
+
+    this.setState({
+      roomId: room_id,
+      isCryptoEnabled
     })
   }
 
@@ -274,6 +311,34 @@ class ChatBox extends React.Component {
       })
   }
 
+  displayFakeMessage = (content, sender) => {
+    const msgList = [...this.state.messages]
+    const msg = {
+      id: uuid(),
+      type: 'm.room.message',
+      sender: sender,
+      roomId: this.state.roomId,
+      content: content,
+    }
+    msgList.push(msg)
+
+    this.setState({ messages: msgList })
+  }
+
+  displayBotMessage = (content, roomId) => {
+    const msgList = [...this.state.messages]
+    const msg = {
+      id: uuid(),
+      type: 'm.room.message',
+      sender: BOT_USERNAME,
+      roomId: roomId || this.state.roomId,
+      content: content,
+    }
+    msgList.push(msg)
+
+    this.setState({ messages: msgList })
+  }
+
   handleMessageEvent = event => {
     const message = {
       id: event.getId(),
@@ -282,8 +347,6 @@ class ChatBox extends React.Component {
       roomId: event.getRoomId(),
       content: event.getContent(),
     }
-
-    console.log("INCOMING MESSAGE", message)
 
     const messages = [...this.state.messages]
     messages.push(message)
@@ -309,35 +372,34 @@ class ChatBox extends React.Component {
 
       this.state.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
         if (event.getType() === "m.room.encryption") {
-          const msgList = [...this.state.messages]
-          const encryptionMsg = {
-            id: 'encryption-msg-id',
-            type: 'm.room.message',
-            sender: BOT_USERNAME,
-            roomId: room.room_id,
-            content: { body: ENCRYPTION_NOTICE },
-          }
-          msgList.push(encryptionMsg)
+          this.displayBotMessage({ body: ENCRYPTION_NOTICE }, room.room_id)
+        }
 
-          this.setState({ messages: msgList })
+        if (event.getType() === "m.room.message" && !this.state.isCryptoEnabled) {
+          if (event.isEncrypted()) {
+            return;
+          }
+          this.handleMessageEvent(event)
         }
       });
 
-      this.state.client.on("Event.decrypted", (event) => {
+      this.state.client.on("Event.decrypted", (event, err) => {
+        if (err) {
+          return this.handleDecryptionError()
+        }
         if (event.getType() === "m.room.message") {
           this.handleMessageEvent(event)
         }
       });
 
       this.state.client.on("RoomMember.typing", (event, member) => {
-        if (member.typing) {
+        if (member.typing && event.getRoomId() === this.state.roomId) {
           this.setState({ typingStatus: `${member.name} is typing...`})
         }
         else {
           this.setState({ typingStatus: null })
         }
       });
-
     }
 
     if (!prevState.ready && this.state.ready) {
@@ -374,45 +436,21 @@ class ChatBox extends React.Component {
 
     if (this.state.awaitingAgreement && !this.state.client) {
       if (this.state.inputValue.toLowerCase() === 'yes') {
-        const fakeUserMsg = {
-          id: 'fake-msg-id',
-          type: 'm.room.message',
-          sender: 'from-me',
-          content: { body: this.state.inputValue },
-        }
-
-        const messages = [...this.state.messages]
-        messages.push(fakeUserMsg)
-        this.setState({ inputValue: "", messages })
+        this.displayFakeMessage({ body: this.state.inputValue }, 'from-me')
+        this.setState({ inputValue: "" })
 
         return this.initializeChat()
 
       } else {
-        const fakeUserMsg = {
-          id: 'fake-msg-id',
-          type: 'm.room.message',
-          sender: 'from-me',
-          content: { body: this.state.inputValue },
-        }
-
-        const exitMsg = {
-          id: 'exit-msg-id',
-          type: 'm.room.message',
-          sender: BOT_USERNAME,
-          content: { body: EXIT_MESSAGE },
-        }
-
-        const messages = [...this.state.messages]
-        messages.push(fakeUserMsg)
-        messages.push(exitMsg)
-        this.setState({ inputValue: "", messages })
+        this.displayFakeMessage({ body: this.state.inputValue }, 'from-me')
+        this.displayBotMessage({ body: EXIT_MESSAGE })
+        return this.setState({ inputValue: "" })
       }
     }
 
     if (this.state.client && this.state.roomId) {
       return this.sendMessage()
     }
-
   }
 
   render() {
