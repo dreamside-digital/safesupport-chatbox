@@ -270,6 +270,42 @@
       width: fit-content;
     }
 
+    .buttons {
+      display: flex;
+      align-items: center;
+      font-size: 1rem;
+
+      button {
+        background-color: transparent;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.9rem;
+        color: inherit;
+        font-weight: bold;
+        font-family: $theme-font;
+        cursor: pointer;
+        display: flex;
+        flex: 0 1 auto;
+        border: 1px solid $theme-color;
+        transition: all 0.2s ease-in-out;
+        border-radius: 10px;
+        margin-left: 4px;
+
+        &:hover {
+          border: 1px solid $dark-color;
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+        }
+
+        &:focus {
+          outline: none;
+          color: $white;
+          border: 1px solid $dark-color;
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+          background-color: $theme-highlight-color;
+        }
+      }
+    }
+
+
     &.from-bot {
       color: $gray-color;
       font-size: 0.9rem;

@@ -6,11 +6,11 @@ describe('bookmarklet', () => {
     const el = document.querySelectorAll('body > div');
     ReactDOM.unmountComponentAtNode(el[0]);
     el[0].parentNode.removeChild(el[0]);
-    window.EmbeddableWidget = null;
+    window.EmbeddableChatbox = null;
   });
 
   test('#mount document becomes ready', async () => {
-    expect(window.EmbeddableWidget).not.toBeNull();
+    expect(window.EmbeddableChatbox).not.toBeNull();
     bookmarklet();
     const el = document.querySelectorAll('body > div');
     expect(el).toHaveLength(1);

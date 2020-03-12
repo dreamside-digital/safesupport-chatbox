@@ -24,11 +24,14 @@ const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end enc
 const UNENCRYPTION_NOTICE = "End-to-end message encryption is not available on this browser."
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
 
+const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space/"
+const DEFAULT_BOT_USERNAME = "@help-bot:rhok.space"
+const DEFAULT_TERMS_URL = "https://tosdr.org/"
 const DEFAULT_ROOM_NAME = "Support Chat"
 const DEFAULT_INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
-const DEFAULT_AGREEMENT_MESSAGE = "👉 Do you want to continue? Type yes or no."
+const DEFAULT_AGREEMENT_MESSAGE = "Do you want to continue?"
 const DEFAULT_CONFIRMATION_MESSAGE = "Waiting for a facilitator to join the chat..."
-const DEFAULT_EXIT_MESSAGE = "The chat was not started."
+const DEFAULT_EXIT_MESSAGE = "The chat is closed. You may close this window."
 const DEFAULT_ANONYMOUS_DISPLAY_NAME="Anonymous"
 const DEFAULT_CHAT_UNAVAILABLE_MESSAGE = "The chat service is not available right now. Please try again later."
 
@@ -36,7 +39,6 @@ const DEFAULT_CHAT_UNAVAILABLE_MESSAGE = "The chat service is not available righ
 class ChatBox extends React.Component {
   constructor(props) {
     super(props)
-    const client = matrix.createClient(this.props.matrixServerUrl)
     this.initialState = {
       opened: false,
       showDock: true,
@@ -46,38 +48,17 @@ class ChatBox extends React.Component {
       userId: null,
       password: null,
       localStorage: null,
-      messages: [
-        {
-          id: 'intro-msg-id',
-          type: 'm.room.message',
-          sender: this.props.botUsername,
-          content: { body: this.props.introMessage },
-        },
-        {
-          id: 'terms-msg-id',
-          type: 'm.room.message',
-          sender: this.props.botUsername,
-          content: {
-            body: `Please read the full terms and conditions at ${this.props.termsUrl}.`,
-            formatted_body: `Please read the full <a href="${this.props.termsUrl}">terms and conditions</a>.`
-          }
-        },
-        {
-          id: 'agreement-msg-id',
-          type: 'm.room.message',
-          sender: this.props.botUsername,
-          content: { body: this.props.agreementMessage }, },
-      ],
+      messages: [],
       inputValue: "",
       errors: [],
       roomId: null,
       typingStatus: null,
       awaitingAgreement: true,
-      awaitingFacilitator: false,
     }
     this.state = this.initialState
     this.chatboxInput = React.createRef();
     this.messageWindow = React.createRef();
+    this.termsUrl = React.createRef();
   }
 
   handleToggleOpen = () => {
@@ -100,7 +81,11 @@ class ChatBox extends React.Component {
   }
 
   handleWidgetEnter = () => {
-    this.chatboxInput.current.focus()
+    if (this.state.awaitingAgreement) {
+      this.termsUrl.current.focus()
+    } else {
+      this.chatboxInput.current.focus()
+    }
   }
 
   handleExitChat = () => {
@@ -442,23 +427,19 @@ class ChatBox extends React.Component {
     this.setState({ inputValue: e.currentTarget.value })
   }
 
+  handleAcceptTerms = () => {
+    this.setState({ awaitingAgreement: false })
+    this.initializeChat()
+  }
+
+  handleRejectTerms = () => {
+    this.exitChat()
+    this.displayBotMessage({ body: this.props.exitMessage })
+  }
+
   handleSubmit = e => {
     e.preventDefault()
     if (!Boolean(this.state.inputValue)) return null;
-
-    if (this.state.awaitingAgreement && !this.state.client) {
-      if (this.state.inputValue.toLowerCase() === 'yes') {
-        this.displayFakeMessage({ body: this.state.inputValue }, 'from-me')
-        this.setState({ inputValue: "" })
-
-        return this.initializeChat()
-
-      } else {
-        this.displayFakeMessage({ body: this.state.inputValue }, 'from-me')
-        this.displayBotMessage({ body: this.props.exitMessage })
-        return this.setState({ inputValue: "" })
-      }
-    }
 
     if (this.state.client && this.state.roomId) {
       return this.sendMessage()
@@ -480,6 +461,26 @@ class ChatBox extends React.Component {
 
                 <div className="message-window" ref={this.messageWindow}>
                   <div className="messages">
+                    <div className={`message from-bot`}>
+                      <div className="text">{ this.props.introMessage }</div>
+                    </div>
+
+                    <div className={`message from-bot`}>
+                      <div className="text">Please read the full <a href={this.props.termsUrl} ref={this.termsUrl}>terms and conditions</a>. By using this chat, you agree to these terms.</div>
+                    </div>
+
+                    <div className={`message from-bot`}>
+                      <div className="text">{ this.props.agreementMessage }</div>
+                    </div>
+
+                    <div className={`message from-bot`}>
+                      <div className="text buttons">
+                        {`👉`}
+                        <button id="accept" onClick={this.handleAcceptTerms}>YES</button>
+                        <button id="reject" onClick={this.handleRejectTerms}>NO</button>
+                      </div>
+                    </div>
+
                     {
                       messages.map((message, index) => {
                         return(
@@ -537,6 +538,9 @@ ChatBox.propTypes = {
 }
 
 ChatBox.defaultProps = {
+  matrixServerUrl: DEFAULT_MATRIX_SERVER,
+  botUsername: DEFAULT_BOT_USERNAME,
+  termsUrl: DEFAULT_TERMS_URL,
   roomName: DEFAULT_ROOM_NAME,
   introMessage: DEFAULT_INTRO_MESSAGE,
   agreementMessage: DEFAULT_AGREEMENT_MESSAGE,

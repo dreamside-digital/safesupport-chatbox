@@ -1,23 +1,24 @@
-import EmbeddableWidget from './embeddable-widget';
+import EmbeddableChatbox from './embeddable-chatbox';
 import { waitForSelection } from '../test-helpers';
 
-describe('EmbeddableWidget', () => {
+
+describe('EmbeddableChatbox', () => {
   afterEach(() => {
     document.readyState = 'complete';
-    if (EmbeddableWidget.el) {
-      EmbeddableWidget.unmount();
+    if (EmbeddableChatbox.el) {
+      EmbeddableChatbox.unmount();
     }
   });
 
   test('#mount document becomes ready', async () => {
     document.readyState = 'loading';
-    EmbeddableWidget.mount();
+    EmbeddableChatbox.mount();
     window.dispatchEvent(new Event('load', {}));
     await waitForSelection(document, 'div');
   });
 
   test('#mount document complete', async () => {
-    EmbeddableWidget.mount();
+    EmbeddableChatbox.mount();
     await waitForSelection(document, 'div');
   });
 
@@ -26,7 +27,7 @@ describe('EmbeddableWidget', () => {
     newElement.setAttribute('id', 'widget-mount');
     document.body.appendChild(newElement);
 
-    EmbeddableWidget.mount({
+    EmbeddableChatbox.mount({
       parentElement: '#widget-mount',
     });
 
@@ -36,8 +37,8 @@ describe('EmbeddableWidget', () => {
   });
 
   test('#mount twice', async () => {
-    EmbeddableWidget.mount();
-    expect(() => EmbeddableWidget.mount()).toThrow('already mounted');
+    EmbeddableChatbox.mount();
+    expect(() => EmbeddableChatbox.mount()).toThrow('already mounted');
   });
 
   test('#unmount', async () => {
@@ -45,13 +46,13 @@ describe('EmbeddableWidget', () => {
     document.body.appendChild(el);
     expect(document.querySelectorAll('div')).toHaveLength(1);
 
-    EmbeddableWidget.el = el;
-    EmbeddableWidget.unmount();
+    EmbeddableChatbox.el = el;
+    EmbeddableChatbox.unmount();
 
     expect(document.querySelectorAll('div')).toHaveLength(0);
   });
 
   test('#unmount without mounting', async () => {
-    expect(() => EmbeddableWidget.unmount()).toThrow('not mounted');
+    expect(() => EmbeddableChatbox.unmount()).toThrow('not mounted');
   });
 });
