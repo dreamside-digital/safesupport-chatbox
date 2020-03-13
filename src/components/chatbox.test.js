@@ -1,9 +1,25 @@
 import React from 'react';
 import Chatbox from './chatbox';
-import mockMatrix, { mockCreateClient } from "matrix-js-sdk";
+import {
+  createClient,
+  mockClient,
+  mockRegisterRequest,
+  mockInitCrypto,
+  mockStartClient,
+  mockSetPowerLevel,
+  mockCreateRoom,
+  mockLeave,
+  mockDeactivateAccount,
+  mockStopClient,
+  mockClearStores,
+  mockOn,
+  mockOnce,
+  mockSendTextMessage
+} from "matrix-js-sdk";
 import { mount, shallow } from 'enzyme';
 import { createWaitForElement } from 'enzyme-wait';
 import { config } from 'react-transition-group';
+import waitForExpect from 'wait-for-expect'
 
 config.disabled = true
 
@@ -22,6 +38,21 @@ const testConfig = {
 
 
 describe('Chatbox', () => {
+
+  beforeEach(() => {
+    createClient.mockClear()
+    mockInitCrypto.mockClear()
+    mockStartClient.mockClear()
+    mockRegisterRequest.mockClear()
+    mockSetPowerLevel.mockClear()
+    mockCreateRoom.mockClear()
+    mockLeave.mockClear()
+    mockDeactivateAccount.mockClear()
+    mockStopClient.mockClear()
+    mockClearStores.mockClear()
+    mockOnce.mockClear()
+    mockOn.mockClear()
+  })
 
   test('chat window should open and close', async () => {
     const chatbox = mount(<Chatbox {...testConfig} />)
@@ -61,107 +92,128 @@ describe('Chatbox', () => {
     expect(messages.text()).toContain(props.agreementMessage)
   });
 
-  test('#handleExitChat should call exitChat if the client has been initialized', () => {
-
-  })
-
-  test('#exitChat should leave the room and destroy client', () => {
-    // leave room
-    // deactivate account
-    // stop client
-    // clear stores
-    // reset initial state
-  })
-
   test('agreeing to terms should start encrypted chat', async () => {
     const chatbox = mount(<Chatbox {...testConfig} />)
     const dock = chatbox.find('button.dock')
 
     dock.simulate('click')
 
-    const yesButton = chatbox.find('#accept')
-    yesButton.simulate('click')
+    const openChatWindow = await createWaitForElement('.widget-entered')(chatbox)
+    let acceptButton = await createWaitForElement('button#accept')(chatbox)
+    acceptButton = chatbox.find('button#accept')
 
-    expect(mockCreateClient).toHaveBeenCalled()
+    acceptButton.simulate('click')
+
+    const ready = await createWaitForElement('.loader')(chatbox)
+    expect(ready.length).toEqual(1)
+
+    expect(createClient).toHaveBeenCalled()
+    expect(mockInitCrypto).toHaveBeenCalled()
+    expect(mockStartClient).toHaveBeenCalled()
+    expect(mockCreateRoom).toHaveBeenCalled()
+    expect(mockSetPowerLevel).toHaveBeenCalled()
+    expect(mockSetPowerLevel).toHaveBeenCalled()
+    expect(mockOn).toHaveBeenCalled()
+    expect(mockOnce).toHaveBeenCalled()
   })
 
-  // test('rejecting terms should not start chat', async () => {
-  //   const chatbox = mount(<Chatbox {...testConfig} />)
-  //   const dock = chatbox.find('button.dock')
+  test('rejecting terms should not start chat', async () => {
+    const chatbox = mount(<Chatbox {...testConfig} />)
+    const dock = chatbox.find('button.dock')
 
-  //   dock.simulate('click')
+    dock.simulate('click')
 
-  //   const noButton = chatbox.find('#reject')
-  //   noButton.simulate('click')
+    const openChatWindow = await createWaitForElement('.widget-entered')(chatbox)
+    let rejectButton = await createWaitForElement('button#reject')(chatbox)
+    rejectButton = chatbox.find('button#reject')
 
-  //   expect(mockMatrix.mockCreateClient.mock.calls.length).toEqual(0)
-  // })
+    rejectButton.simulate('click')
 
-  test('#initializeChat should notify user if client fails to initialize', () => {
-    // handleInitError
+    expect(createClient.mock.calls.length).toEqual(0)
   })
 
-  test('#initializeChat should create unencypted chat if initCrypto fails', () => {
-    // initializeUnencryptedChat
+  test('notification should appear when facilitator joins chat', () => {
+    //
   })
 
-  test('#initializeUnencryptedChat should initialize an unencrypted client', () => {
-    // initializeUnencryptedChat
+  test('submitted messages should be sent to matrix', async () => {
+    const chatbox = mount(<Chatbox {...testConfig} />)
+    const dock = chatbox.find('button.dock')
+
+    dock.simulate('click')
+
+    let acceptButton = await createWaitForElement('button#accept')(chatbox)
+    acceptButton = chatbox.find('button#accept')
+
+    acceptButton.simulate('click')
+
+    await waitForExpect(() => {
+      expect(mockCreateRoom).toHaveBeenCalled()
+    });
+
+    const input = chatbox.find('#message-input')
+    const form = chatbox.find('form')
+    const message = 'Hello'
+
+    input.simulate('change', { target: { value: message }})
+
+    await waitForExpect(() => {
+      chatbox.update()
+      expect(chatbox.state().inputValue).toEqual(message)
+    })
+
+    form.simulate('submit')
+
+    await waitForExpect(() => {
+      expect(mockSendTextMessage).toHaveBeenCalledWith(chatbox.state().roomId, message)
+    });
   })
 
-  test('#handleDecryptionError should restart client without encryption and notify user', () => {
-    // initializeUnencryptedChat
+  test('received messages should appear in chat window', () => {
+    //
   })
 
-  test('#verifyAllRoomDevices should mark all devices in the room as verified devices', () => {
-
+  test('decryption failure should lead to a new unencrypted chat', () => {
+    //
   })
 
-  test('#createRoom should create a new encrypted room with bot as admin', () => {
+  test('exiting the chat should leave the room and destroy client', async () => {
+    const chatbox = mount(<Chatbox {...testConfig} />)
+    const dock = chatbox.find('button.dock')
 
-  })
+    dock.simulate('click')
 
-  test('#createRoom should create a new unencrypted room if encryption is not enabled', () => {
+    const openChatWindow = await createWaitForElement('.widget-entered')(chatbox)
+    let acceptButton = await createWaitForElement('button#accept')(chatbox)
+    acceptButton = chatbox.find('button#accept')
 
-  })
+    acceptButton.simulate('click')
 
-  test('#sendMessage should send text message with input value', () => {
+    await waitForExpect(() => {
+      expect(mockCreateRoom).toHaveBeenCalled()
+    });
 
-  })
+    const exitButton = chatbox.find('button.widget-header-close')
 
-  test('#sendMessage should mark devices as known and retry sending on UnknownDeviceError', () => {
+    exitButton.simulate('click')
 
-  })
+    let closed = await createWaitForElement('button.dock')
+    expect(closed.length).toEqual(1)
 
-  test('#sendMessage should mark devices as known and retry sending on UnknownDeviceError', () => {
+    await waitForExpect(() => {
+      expect(mockLeave).toHaveBeenCalled()
+    });
 
-  })
+    await waitForExpect(() => {
+      expect(mockDeactivateAccount).toHaveBeenCalled()
+    });
 
-  test('#displayFakeMessage should add a message object to message list', () => {
+    await waitForExpect(() => {
+      expect(mockStopClient).toHaveBeenCalled()
+    });
 
-  })
-
-  test('#displayBotMessage should add a message object with bot as sender to message list', () => {
-
-  })
-
-  test('#handleMessageEvent should add received message to message list', () => {
-
-  })
-
-  test('#componentDidUpdate should set state listeners', () => {
-
-  })
-
-  test('#handleSubmit should listen for yes if awaiting agreement and initialize client', () => {
-
-  })
-
-  test('#handleSubmit should listen for no if awaiting agreement and do nothing', () => {
-
-  })
-
-  test('#handleSubmit should send message if awaitingAgreement is false', () => {
-
+    await waitForExpect(() => {
+      expect(mockClearStores).toHaveBeenCalled()
+    });
   })
 });

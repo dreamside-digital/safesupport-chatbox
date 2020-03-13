@@ -120,16 +120,17 @@ class ChatBox extends React.Component {
   }
 
   initializeChat = () => {
-    // empty registration request to get session
     this.setState({ ready: false })
     let client;
 
     try {
       client = matrix.createClient(this.props.matrixServerUrl)
-    } catch {
+    } catch(error) {
+      console.log("Error creating client", error)
       return this.handleInitError()
     }
 
+    // empty registration request to get session
     return client.registerRequest({})
       .then(data => {
         console.log("Empty registration request to get session", data)
@@ -399,16 +400,10 @@ class ChatBox extends React.Component {
       });
     }
 
-    if (!prevState.ready && this.state.ready) {
-      this.chatboxInput.current.focus()
-    }
-
-    if (!prevState.opened && this.state.opened) {
-      this.chatboxInput.current.focus()
-    }
-
     if (prevState.messages.length !== this.state.messages.length) {
-      this.messageWindow.current.scrollTo(0, this.messageWindow.current.scrollHeight)
+      if (this.messageWindow.current.scrollTo) {
+        this.messageWindow.current.scrollTo(0, this.messageWindow.current.scrollHeight)
+      }
     }
   }
 
@@ -424,7 +419,7 @@ class ChatBox extends React.Component {
   }
 
   handleInputChange = e => {
-    this.setState({ inputValue: e.currentTarget.value })
+    this.setState({ inputValue: e.target.value })
   }
 
   handleAcceptTerms = () => {
@@ -493,14 +488,13 @@ class ChatBox extends React.Component {
                         <div role="status">{typingStatus}</div>
                       </div>
                     }
-                    {
-                      !ready && <div className="loader">loading...</div>
-                    }
+                    { !ready && <div className={`loader`}>loading...</div> }
                   </div>
                 </div>
                 <div className="input-window">
                   <form onSubmit={this.handleSubmit}>
                     <input
+                      id="message-input"
                       type="text"
                       onChange={this.handleInputChange}
                       value={inputValue}
@@ -509,7 +503,7 @@ class ChatBox extends React.Component {
                       autoFocus={true}
                       ref={this.chatboxInput}
                     />
-                    <input type="submit" value="Send" />
+                    <input type="submit" value="Send" id="submit" />
                   </form>
                 </div>
               </div>
