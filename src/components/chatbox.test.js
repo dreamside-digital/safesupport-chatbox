@@ -132,10 +132,6 @@ describe('Chatbox', () => {
     expect(createClient.mock.calls.length).toEqual(0)
   })
 
-  test('notification should appear when facilitator joins chat', () => {
-    //
-  })
-
   test('submitted messages should be sent to matrix', async () => {
     const chatbox = mount(<Chatbox {...testConfig} />)
     const dock = chatbox.find('button.dock')
@@ -169,12 +165,59 @@ describe('Chatbox', () => {
     });
   })
 
-  test('received messages should appear in chat window', () => {
-    //
+
+  test('decryption failure should lead to a new unencrypted chat', async () => {
+    const chatbox = mount(<Chatbox {...testConfig} />)
+    const dock = chatbox.find('button.dock')
+    const instance = chatbox.instance()
+
+    dock.simulate('click')
+
+    const openChatWindow = await createWaitForElement('.widget-entered')(chatbox)
+    let acceptButton = await createWaitForElement('button#accept')(chatbox)
+    acceptButton = chatbox.find('button#accept')
+
+    acceptButton.simulate('click')
+
+    await waitForExpect(() => {
+      expect(mockCreateRoom).toHaveBeenCalled()
+    });
+
+    jest.spyOn(instance, 'initializeUnencryptedChat')
+    instance.handleDecryptionError()
+
+    await waitForExpect(() => {
+      expect(mockLeave).toHaveBeenCalled()
+    });
+
+    await waitForExpect(() => {
+      expect(mockStopClient).toHaveBeenCalled()
+    });
+
+    await waitForExpect(() => {
+      expect(mockClearStores).toHaveBeenCalled()
+    });
+
+    expect(instance.initializeUnencryptedChat).toHaveBeenCalled()
   })
 
-  test('decryption failure should lead to a new unencrypted chat', () => {
-    //
+  test('creating an unencrypted chat', async () => {
+    const chatbox = mount(<Chatbox {...testConfig} />)
+    const instance = chatbox.instance()
+
+    instance.initializeUnencryptedChat()
+
+    await waitForExpect(() => {
+      expect(createClient).toHaveBeenCalled()
+    })
+
+    await waitForExpect(() => {
+      expect(mockStartClient).toHaveBeenCalled()
+    })
+
+    await waitForExpect(() => {
+      expect(mockInitCrypto).not.toHaveBeenCalled()
+    })
   })
 
   test('exiting the chat should leave the room and destroy client', async () => {
@@ -216,4 +259,13 @@ describe('Chatbox', () => {
       expect(mockClearStores).toHaveBeenCalled()
     });
   })
+
+  test('notification should appear when facilitator joins chat', () => {
+    //
+  })
+
+  test('received messages should appear in chat window', () => {
+    //
+  })
+
 });
