@@ -1,5 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
+import Linkify from 'linkifyjs/react';
 
 const Message = ({ message, userId, botId }) => {
 
@@ -16,6 +17,7 @@ const Message = ({ message, userId, botId }) => {
     }
   }
 
+
   if (message.content.formatted_body) {
     return (
       <div className={`message ${senderClass()}`}>
@@ -24,9 +26,17 @@ const Message = ({ message, userId, botId }) => {
     )
   }
 
+  const linkifyOpts = {
+    linkAttributes: {
+      rel: 'noreferrer noopener',
+    },
+  }
+
   return (
     <div className={`message ${senderClass()}`}>
-      <div className="text">{ message.content.body }</div>
+      <div className="text">
+        <Linkify options={linkifyOpts}>{ message.content.body }</Linkify>
+      </div>
     </div>
   )
 }

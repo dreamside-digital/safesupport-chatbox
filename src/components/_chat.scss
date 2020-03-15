@@ -30,6 +30,7 @@
   right: 10px;
   z-index: 9999;
   width: 400px;
+  max-width: 100vw;
 }
 
 .dock {
@@ -323,6 +324,14 @@
         margin-left: 10%;
         padding: 0.5rem 0.75rem;
       }
+
+      a {
+        color: $white;
+
+        &:hover, &:focus {
+          color: $light-purple;
+        }
+      }
     }
 
     &.from-support {
@@ -336,6 +345,14 @@
         border-radius: 15px 15px 15px 0;
         margin-right: 10%;
         padding: 0.5rem 0.75rem;
+      }
+
+      a {
+        color: $dark-color;
+
+        &:hover, &:focus {
+          color: $medium-purple;
+        }
       }
     }
   }

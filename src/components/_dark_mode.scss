@@ -85,6 +85,34 @@
           color: $light-text-color;
           border: 1px solid $dark-theme-color;
         }
+
+        a {
+          color: $light-text-color;
+
+          &:hover, &:focus {
+            color: $light-purple;
+          }
+        }
+      }
+
+      .buttons {
+        button {
+          background-color: transparent;
+          border: 1px solid $theme-color;
+
+          &:hover {
+            border: 1px solid $light-purple;
+            box-shadow: inset 0px 0px 0px 1px $light-purple;
+          }
+
+          &:focus {
+            outline: none;
+            color: $white;
+            border: 1px solid $light-purple;
+            box-shadow: inset 0px 0px 0px 1px $light-purple;
+            background-color: $dark-theme-highlight-color;
+          }
+        }
       }
     }
 

@@ -174,7 +174,6 @@ class ChatBox extends React.Component {
             userId: data.user_id,
             deviceId: data.device_id,
             sessionStore: new matrix.WebStorageSessionStore(localStorage),
-            displayName: this.props.anonymousDisplayName,
           }
 
           client = matrix.createClient(opts)
@@ -184,6 +183,7 @@ class ChatBox extends React.Component {
         })
         .then(() => client.initCrypto())
         .catch(err => this.initializeUnencryptedChat())
+        .then(() => client.setDisplayName(this.props.anonymousDisplayName))
         .then(() => client.startClient())
         .then(() => {
           this.setState({
@@ -202,12 +202,12 @@ class ChatBox extends React.Component {
       accessToken: this.state.accessToken,
       userId: this.state.userId,
       deviceId: this.state.deviceId,
-      displayName: this.props.anonymousDisplayName,
     }
 
     let client;
     try {
       client = matrix.createClient(opts)
+      client.setDisplayName(this.props.anonymousDisplayName)
     } catch {
       return this.handleInitError()
     }
@@ -287,12 +287,8 @@ class ChatBox extends React.Component {
     })
   }
 
-  sendMessage = () => {
-    this.state.client.sendTextMessage(this.state.roomId, this.state.inputValue)
-      .then((res) => {
-        this.setState({ inputValue: "" })
-        this.chatboxInput.current.focus()
-      })
+  sendMessage = (message) => {
+    this.state.client.sendTextMessage(this.state.roomId, message)
       .catch((err) => {
         switch (err["name"]) {
           case "UnknownDeviceError":
@@ -301,9 +297,10 @@ class ChatBox extends React.Component {
                   this.state.client.setDeviceKnown(userId, deviceId, true);
               });
             });
-            this.sendMessage()
+            this.sendMessage(message)
             break;
           default:
+            this.displayBotMessage({ body: "Your message was not sent." })
             console.log("Error sending message", err);
         }
       })
@@ -434,10 +431,13 @@ class ChatBox extends React.Component {
 
   handleSubmit = e => {
     e.preventDefault()
-    if (!Boolean(this.state.inputValue)) return null;
+    const message = this.state.inputValue
+    if (!Boolean(message)) return null;
 
     if (this.state.client && this.state.roomId) {
-      return this.sendMessage()
+      this.setState({ inputValue: "" })
+      this.chatboxInput.current.focus()
+      return this.sendMessage(message)
     }
   }
 
@@ -461,7 +461,7 @@ class ChatBox extends React.Component {
                     </div>
 
                     <div className={`message from-bot`}>
-                      <div className="text">Please read the full <a href={this.props.termsUrl} ref={this.termsUrl}>terms and conditions</a>. By using this chat, you agree to these terms.</div>
+                      <div className="text">Please read the full <a href={this.props.termsUrl} ref={this.termsUrl} target='_blank' rel='noopener noreferrer'>terms and conditions</a>. By using this chat, you agree to these terms.</div>
                     </div>
 
                     <div className={`message from-bot`}>
@@ -471,8 +471,8 @@ class ChatBox extends React.Component {
                     <div className={`message from-bot`}>
                       <div className="text buttons">
                         {`👉`}
-                        <button id="accept" onClick={this.handleAcceptTerms}>YES</button>
-                        <button id="reject" onClick={this.handleRejectTerms}>NO</button>
+                        <button className="btn" id="accept" onClick={this.handleAcceptTerms}>YES</button>
+                        <button className="btn" id="reject" onClick={this.handleRejectTerms}>NO</button>
                       </div>
                     </div>
 
