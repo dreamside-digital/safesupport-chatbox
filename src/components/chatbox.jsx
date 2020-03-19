@@ -341,10 +341,7 @@ class ChatBox extends React.Component {
       sender: event.getSender(),
       roomId: event.getRoomId(),
       content: event.getContent(),
-
     }
-
-    console.log('message ===========>', message)
 
     const messages = [...this.state.messages]
     messages.push(message)
