@@ -116,6 +116,8 @@
     "webpack-serve": "3.2.0"
   },
   "dependencies": {
+    "browser-encrypt-attachment": "^0.3.0",
+    "isomorphic-fetch": "^2.2.1",
     "linkifyjs": "^2.1.9",
     "matrix-js-sdk": "^4.0.0",
     "node-localstorage": "^2.1.5",

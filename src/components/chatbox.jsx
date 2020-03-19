@@ -341,7 +341,10 @@ class ChatBox extends React.Component {
       sender: event.getSender(),
       roomId: event.getRoomId(),
       content: event.getContent(),
+
     }
+
+    console.log('message ===========>', message)
 
     const messages = [...this.state.messages]
     messages.push(message)
@@ -479,7 +482,7 @@ class ChatBox extends React.Component {
                     {
                       messages.map((message, index) => {
                         return(
-                          <Message key={message.id} message={message} userId={userId} botId={this.props.botUsername} />
+                          <Message key={message.id} message={message} userId={userId} botId={this.props.botUsername} client={this.state.client} />
                         )
                       })
                     }
