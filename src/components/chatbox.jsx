@@ -343,6 +343,14 @@ class ChatBox extends React.Component {
       content: event.getContent(),
     }
 
+    if (message.content.showToUser && message.content.showToUser !== this.state.userId) {
+      return;
+    }
+
+    if (message.content.body.startsWith('!bot') && message.sender !== this.state.userId) {
+      return;
+    }
+
     const messages = [...this.state.messages]
     messages.push(message)
     this.setState({ messages })
