@@ -396,8 +396,8 @@ class ChatBox extends React.Component {
       });
 
       this.state.client.on("RoomMember.typing", (event, member) => {
-        if (member.typing && event.getRoomId() === this.state.roomId) {
-          this.setState({ typingStatus: `${member.name} is typing...`})
+        if (member.typing && member.roomId === this.state.roomId) {
+          this.setState({ typingStatus: `${member.name} is typing...` })
         }
         else {
           this.setState({ typingStatus: null })
