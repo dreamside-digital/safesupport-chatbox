@@ -2,7 +2,7 @@ import EmbeddableChatbox from './embeddable-chatbox';
 
 const config = {
   matrixServerUrl: 'https://matrix.rhok.space',
-  botUsername: '@help-bot:rhok.space',
+  botId: '@help-bot:rhok.space',
   roomName: 'Support Chat',
   termsUrl: 'https://tosdr.org/',
   introMessage: 'This chat application does not collect any of your personal data or any data from your use of this service.',

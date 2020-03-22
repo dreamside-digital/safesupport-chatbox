@@ -25,7 +25,7 @@ const UNENCRYPTION_NOTICE = "End-to-end message encryption is not available on t
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space/"
-const DEFAULT_BOT_USERNAME = "@help-bot:rhok.space"
+const DEFAULT_BOT_ID = "@help-bot:rhok.space"
 const DEFAULT_TERMS_URL = "https://tosdr.org/"
 const DEFAULT_ROOM_NAME = "Support Chat"
 const DEFAULT_INTRO_MESSAGE = "This chat application does not collect any of your personal data or any data from your use of this service."
@@ -252,7 +252,7 @@ class ChatBox extends React.Component {
     const chatTime = currentDate.toLocaleTimeString()
     let roomConfig = {
       room_alias_name: `private-support-chat-${uuid()}`,
-      invite: [this.props.botUsername],
+      invite: [this.props.botId],
       visibility: 'private',
       name: `${chatTime}, ${chatDate} - ${this.props.roomName}`,
     }
@@ -271,7 +271,7 @@ class ChatBox extends React.Component {
 
     const { room_id } = await this.state.client.createRoom(roomConfig)
 
-    this.state.client.setPowerLevel(room_id, this.props.botUsername, 100)
+    this.state.client.setPowerLevel(room_id, this.props.botId, 100)
 
     if (isCryptoEnabled) {
       this.verifyAllRoomDevices(room_id)
@@ -325,7 +325,7 @@ class ChatBox extends React.Component {
     const msg = {
       id: uuid(),
       type: 'm.room.message',
-      sender: this.props.botUsername,
+      sender: this.props.botId,
       roomId: roomId || this.state.roomId,
       content: content,
     }
@@ -487,7 +487,7 @@ class ChatBox extends React.Component {
                     {
                       messages.map((message, index) => {
                         return(
-                          <Message key={message.id} message={message} userId={userId} botId={this.props.botUsername} client={this.state.client} />
+                          <Message key={message.id} message={message} userId={userId} botId={this.props.botId} client={this.state.client} />
                         )
                       })
                     }
@@ -528,9 +528,9 @@ class ChatBox extends React.Component {
 
 ChatBox.propTypes = {
   matrixServerUrl: PropTypes.string.isRequired,
-  botUsername: PropTypes.string.isRequired,
-  termsUrl: PropTypes.string.isRequired,
-  introMessage: PropTypes.string.isRequired,
+  botId: PropTypes.string.isRequired,
+  termsUrl: PropTypes.string,
+  introMessage: PropTypes.string,
   roomName: PropTypes.string,
   agreementMessage: PropTypes.string,
   confirmationMessage: PropTypes.string,
@@ -541,7 +541,7 @@ ChatBox.propTypes = {
 
 ChatBox.defaultProps = {
   matrixServerUrl: DEFAULT_MATRIX_SERVER,
-  botUsername: DEFAULT_BOT_USERNAME,
+  botId: DEFAULT_BOT_ID,
   termsUrl: DEFAULT_TERMS_URL,
   roomName: DEFAULT_ROOM_NAME,
   introMessage: DEFAULT_INTRO_MESSAGE,
