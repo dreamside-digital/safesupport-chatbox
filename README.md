@@ -10,16 +10,19 @@ Built on:
 ```
 <script src="./chatbox.js"></script>
 <script>
-  EmbeddableChatbox.mount({ matrixServerUrl: "https://matrix.org" });
+  EmbeddableChatbox.mount({ 
+    matrixServerUrl: "https://matrix.rhok.space",
+    botUsername: "@help-bot:rhok.space"
+  });
 </script>
 ```
 Options:
 | Name | Description | Default
 | ----------- | ----------- | --------- |
 | `matrixServerUrl` (required) | URL for the Matrix homeserver you want to connect to | `https://matrix.rhok.space` |
-| `botUsername` (required) | User ID for the bot account that handles invites | `@help-bot:rhok.space` |
-| `introMessage` (required)  | First message the user sees before agreeing to the Terms of Use | `This chat application does not collect any of your personal data or any data from your use of this service.` |
-| `termsUrl` (required)  | URL for the Terms of Use for the chat service | `https://tosdr.org/` |
+| `botId` (required) | User ID for the bot account that handles invites | `@help-bot:rhok.space` |
+| `introMessage` (optional) | First message the user sees before agreeing to the Terms of Use | `This chat application does not collect any of your personal data or any data from your use of this service.` |
+| `termsUrl` (optional) | URL for the Terms of Use for the chat service | `https://tosdr.org/` |
 | `roomName` (optional)  | Name of the chatroom generated in Riot | 'Support Chat' |
 | `agreementMessage` (optional)  | Text to show to request agreement to the Terms of Use | `Do you want to continue?` |
 | `confirmationMessage` (optional) | Text to show to ask for agreement to continue | `Waiting for a facilitator to join the chat...` |
