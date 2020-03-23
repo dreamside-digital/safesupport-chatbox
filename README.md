@@ -2,6 +2,8 @@
 
 ![Demo video of chatbox](https://media.giphy.com/media/Js8Wm7DdbkuFK4MJUC/giphy.gif)
 
+Live demo: https://nomadic-labs.github.io/ocrcc-chatbox/
+
 Built on:
 - [Embeddable React Widget](https://github.com/seriousben/embeddable-react-widget)
 - [Matrix JS SDK](https://github.com/matrix-org/matrix-js-sdk)
@@ -29,6 +31,40 @@ Options:
 | `exitMessage` (optional) | Text to show if the user rejects the Terms of Use. | `The chat is closed. You may close this window.` |
 | `anonymousDisplayName` (optional) | The display name for the chat user. | `Anonymous` |
 | `chatUnavailableMessage` (optional) | Text to show if no-one is available to respond  | `The chat service is not available right now. Please try again later.` |
+
+## Feature list
+
+[x] Can be embedded on any website with Javascript enabled
+[x] WCAG AA compliant
+[x] Light and dark theme
+[x] Support seekers are anonymous
+[x] Uses Matrix's end to end encryption
+[x] If encryption fails, falls back to unencrypted chat
+[x] Status texts are customizeable
+[x] Only initiates chat after user agrees to Terms of Service
+[x] Upon exiting chat, user data is wiped - account deleted, local datastore cleared
+[x] If enabled, the bot account can provide transcript of the conversation
+[x] Automatically parses incoming text messages for URLs and adds the <a> tags
+[x] Easy to customize colour scheme
+[x] Bookmarklet allows users to open the chat on any website
+
+## Bot account
+
+This chatbox is meant to be used with a bot account that handles a number of functions:
+* Sends out invitations to facilitators to join the support chat
+* Revokes unused invitations when the first facilitator join the chat
+* Keeps a transcript of the conversation
+* Notifies user if there are not facilitators available
+
+The bot account is invited to the chatroom when a support request is initiated. 
+
+You can find the code for the bot at [ocrcc-bot](https://github.com/nomadic-labs/ocrcc-bot). 
+
+## Bookmarklet 
+
+The bookmarklet is a special link that runs a script on any website. The user saves the link by dragging it to their bookmarks bar. Then they can click on the bookmark on any page to run the script and load the chatbox.
+
+You can try this out on the [live demo](https://nomadic-labs.github.io/ocrcc-chatbox/).
 
 ## Local development
 
