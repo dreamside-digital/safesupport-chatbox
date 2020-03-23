@@ -34,19 +34,19 @@ Options:
 
 ## Feature list
 
-[x] Can be embedded on any website with Javascript enabled
-[x] WCAG AA compliant
-[x] Light and dark theme
-[x] Support seekers are anonymous
-[x] Uses Matrix's end to end encryption
-[x] If encryption fails, falls back to unencrypted chat
-[x] Status texts are customizeable
-[x] Only initiates chat after user agrees to Terms of Service
-[x] Upon exiting chat, user data is wiped - account deleted, local datastore cleared
-[x] If enabled, the bot account can provide transcript of the conversation
-[x] Automatically parses incoming text messages for URLs and adds the <a> tags
-[x] Easy to customize colour scheme
-[x] Bookmarklet allows users to open the chat on any website
+- [x] Can be embedded on any website with Javascript enabled
+- [x] WCAG AA compliant
+- [x] Light and dark theme
+- [x] Support seekers are anonymous
+- [x] Uses Matrix's end to end encryption
+- [x] If encryption fails, falls back to unencrypted chat
+- [x] Status texts are customizeable
+- [x] Only initiates chat after user agrees to Terms of Service
+- [x] Upon exiting chat, user data is wiped - account deleted, local datastore cleared
+- [x] If enabled, the bot account can provide transcript of the conversation
+- [x] Automatically parses incoming text messages for URLs and adds the <a> tags
+- [x] Easy to customize colour scheme
+- [x] Bookmarklet allows users to open the chat on any website
 
 ## Bot account
 
