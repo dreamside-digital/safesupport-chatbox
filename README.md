@@ -1,6 +1,6 @@
 # Embeddable Matrix Chatbox
 
-![Demo video of chatbox](https://media.giphy.com/media/Js8Wm7DdbkuFK4MJUC/giphy.gif)
+![Demo video of chatbox](https://media.giphy.com/media/IhmtP0NoG22k6FRQDF/giphy.gif)
 
 Live demo: https://nomadic-labs.github.io/ocrcc-chatbox/
 
