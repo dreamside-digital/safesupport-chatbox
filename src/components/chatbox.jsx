@@ -15,6 +15,7 @@ import {uuid} from "uuidv4"
 import Message from "./message";
 import Dock from "./dock";
 import Header from "./header";
+import EmojiSelector from './emoji-selector';
 
 import './styles.scss';
 
@@ -54,6 +55,7 @@ class ChatBox extends React.Component {
       roomId: null,
       typingStatus: null,
       awaitingAgreement: true,
+      emojiSelectorOpen: false,
     }
     this.state = this.initialState
     this.chatboxInput = React.createRef();
@@ -72,6 +74,14 @@ class ChatBox extends React.Component {
         opened: !prev.opened,
       };
     });
+  }
+
+  toggleEmojiSelector = () => {
+    this.setState({ emojiSelectorOpen: !this.state.emojiSelectorOpen })
+  }
+
+  closeEmojiSelector = () => {
+    this.setState({ emojiSelectorOpen: false }, () => this.chatboxInput.current.focus())
   }
 
   handleWidgetExit = () => {
@@ -357,9 +367,13 @@ class ChatBox extends React.Component {
   }
 
 
-  handleEscape = (e) => {
-    if (e.keyCode === 27 && this.state.opened) {
-      this.handleToggleOpen()
+  handleKeyDown = (e) => {
+    if (e.keyCode === 27) {
+      if (this.state.emojiSelectorOpen) {
+        this.closeEmojiSelector()
+      } else if (this.state.opened) {
+        this.handleToggleOpen()
+      }
     }
   }
 
@@ -413,12 +427,12 @@ class ChatBox extends React.Component {
   }
 
   componentDidMount() {
-    document.addEventListener("keydown", this.handleEscape, false);
+    document.addEventListener("keydown", this.handleKeyDown, false);
     window.addEventListener('beforeunload', this.exitChat)
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.handleEscape, false);
+    document.removeEventListener("keydown", this.handleKeyDown, false);
     window.removeEventListener('beforeunload', this.exitChat)
     this.exitChat();
   }
@@ -449,8 +463,16 @@ class ChatBox extends React.Component {
     }
   }
 
+  onEmojiClick = (event, emojiObject) => {
+    const { emoji } = emojiObject;
+    this.setState({
+      inputValue: this.state.inputValue.concat(emoji),
+      emojiSelectorOpen: false,
+    }, () => this.chatboxInput.current.focus())
+  }
+
   render() {
-    const { ready, messages, inputValue, userId, roomId, typingStatus, opened, showDock } = this.state;
+    const { ready, messages, inputValue, userId, roomId, typingStatus, opened, showDock, emojiSelectorOpen } = this.state;
     const inputLabel = 'Send a message...'
 
     return (
@@ -501,16 +523,25 @@ class ChatBox extends React.Component {
                 </div>
                 <div className="input-window">
                   <form onSubmit={this.handleSubmit}>
-                    <input
-                      id="message-input"
-                      type="text"
-                      onChange={this.handleInputChange}
-                      value={inputValue}
-                      aria-label={inputLabel}
-                      placeholder={inputLabel}
-                      autoFocus={true}
-                      ref={this.chatboxInput}
-                    />
+                    <div className="message-input-container">
+                      <input
+                        id="message-input"
+                        type="text"
+                        onChange={this.handleInputChange}
+                        value={inputValue}
+                        aria-label={inputLabel}
+                        placeholder={inputLabel}
+                        autoFocus={true}
+                        onFocus={(e) => this.setState({ inputValue: this.state.inputValue })}
+                        ref={this.chatboxInput}
+                      />
+                      <EmojiSelector
+                        onEmojiClick={this.onEmojiClick}
+                        emojiSelectorOpen={emojiSelectorOpen}
+                        toggleEmojiSelector={this.toggleEmojiSelector}
+                        closeEmojiSelector={this.closeEmojiSelector}
+                      />
+                    </div>
                     <input type="submit" value="Send" id="submit" />
                   </form>
                 </div>

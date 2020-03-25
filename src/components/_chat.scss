@@ -195,7 +195,7 @@
     }
 
     &:focus {
-      background: $theme-light-color;
+      background-color: $theme-light-color;
       outline: none;
     }
   }
@@ -366,36 +366,6 @@
       margin-bottom: 0;
     }
 
-    input[placeholder] {
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-
-    input[type="text"] {
-      font-size: 1rem;
-      padding: 0.5rem;
-      border: none;
-      display: flex;
-      flex: 1 1 auto;
-      border: 1px solid $dark-color;
-      background: $white;
-      color: $dark-color;
-      font-family: $theme-font;
-      margin-right: 0.2rem;
-      transition: all 0.2s ease-in-out;
-      border-radius: 10px;
-
-      &:hover {
-        box-shadow: inset 0px 0px 0px 1px $dark-color;
-      }
-
-      &:focus {
-        outline: none;
-        box-shadow: inset 0px 0px 0px 1px $dark-color;
-        background: $theme-light-color;
-      }
-    }
-
     input[type="submit"] {
       background-color: $theme-color;
       height: 100%;
@@ -423,12 +393,122 @@
         background-color: $theme-highlight-color;
       }
     }
+
+    .message-input-container {
+      display: flex;
+      flex: 1 1 auto;
+      position: relative;
+
+      input[type="text"] {
+        font-size: 1rem;
+        padding: 0.5rem;
+        padding-right: 32px;
+        border: none;
+        display: flex;
+        flex: 1 1 auto;
+        background: $white;
+        color: $dark-color;
+        font-family: $theme-font;
+        margin-right: 0.2rem;
+        transition: all 0.2s ease-in-out;
+        border-radius: 10px;
+        border: 1px solid $dark-color;
+
+        &:hover {
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+          background: $theme-light-color;
+        }
+      }
+
+      .emoji-button-container {
+        position: absolute;
+        right: 6px;
+        top: 0;
+        bottom: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+
+        button {
+          transition: all 0.2s ease-in-out;
+
+          &:hover {
+            box-shadow: none;
+          }
+
+          &:focus {
+            outline: none;
+          }
+
+          &#emoji-button {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-right: 3px;
+            transition: all 0.2s ease-in-out;
+
+            &:hover {
+              svg path#icon {
+                fill: $theme-color;
+              }
+            }
+
+            &:focus {
+              svg path#icon {
+                fill: $theme-highlight-color;
+              }
+            }
+          }
+        }
+      }
+
+      .emoji-picker {
+        animation-duration: 0.2s;
+        animation-fill-mode: forwards;
+        position: absolute;
+        bottom: 32px;
+        right: -4px;
+
+        &-entering {
+          animation-name: slideInUp;
+          opacity: 0.5;
+        }
+        &-entered {
+          display: inherit;
+          visibility: visible;
+          opacity: 1;
+        }
+        &-exiting {
+          animation-name: slideOutDown;
+          opacity: 0.5;
+        }
+        &-exited {
+          display: none;
+          visibility: hidden;
+          opacity: 0;
+        }
+      }
+    }
   }
 
   .highlight-text {
     color: $theme-color;
   }
 
+  .pos-relative {
+    position: relative;
+  }
+}
+
+.hidden {
+  display: none;
 }
 
 @media screen and (max-width: 420px){
@@ -448,6 +528,11 @@
   }
 }
 
-.hidden {
-  display: none;
+@media screen and (max-width: 360px){
+  #ocrcc-chatbox .input-window .message-input-container .emoji-picker {
+    position: fixed;
+    left: 5px;
+    right: 5px;
+    bottom: 42px;
+  }
 }
