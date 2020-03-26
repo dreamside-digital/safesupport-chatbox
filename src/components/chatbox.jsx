@@ -76,7 +76,8 @@ class ChatBox extends React.Component {
     });
   }
 
-  toggleEmojiSelector = () => {
+  toggleEmojiSelector = (e) => {
+    e.preventDefault();
     this.setState({ emojiSelectorOpen: !this.state.emojiSelectorOpen })
   }
 
@@ -137,7 +138,7 @@ class ChatBox extends React.Component {
       client = matrix.createClient(this.props.matrixServerUrl)
     } catch(error) {
       console.log("Error creating client", error)
-      return this.handleInitError()
+      return this.handleInitError(err)
     }
 
     // empty registration request to get session
@@ -189,10 +190,14 @@ class ChatBox extends React.Component {
           client = matrix.createClient(opts)
         })
         .catch(err => {
-          this.handleInitError()
+          this.handleInitError(err)
         })
         .then(() => client.initCrypto())
-        .catch(err => this.initializeUnencryptedChat())
+        .catch(err => {
+          client.stopClient()
+          client.clearStores()
+          return Promise.reject({ error: "Failed crypto", message: err })
+        })
         .then(() => client.setDisplayName(this.props.anonymousDisplayName))
         .then(() => client.startClient())
         .then(() => {
@@ -200,7 +205,13 @@ class ChatBox extends React.Component {
             client: client
           })
         })
-        .catch(err => this.handleInitError())
+        .catch(err => {
+          if (err.error === "Failed crypto") {
+            this.initializeUnencryptedChat()
+          } else {
+            this.handleInitError(err)
+          }
+        })
     })
   }
 
@@ -219,7 +230,7 @@ class ChatBox extends React.Component {
       client = matrix.createClient(opts)
       client.setDisplayName(this.props.anonymousDisplayName)
     } catch {
-      return this.handleInitError()
+      return this.handleInitError(err)
     }
     return client.startClient()
       .then(() => {
@@ -228,10 +239,11 @@ class ChatBox extends React.Component {
           isCryptoEnabled: false,
         })
       })
-      .catch(err => this.handleInitError())
+      .catch(err => this.handleInitError(err))
   }
 
-  handleInitError = () => {
+  handleInitError = (err) => {
+    console.log("Error", err)
     this.displayBotMessage({ body: this.props.chatUnavailableMessage })
     this.setState({ ready: true })
   }
@@ -257,6 +269,7 @@ class ChatBox extends React.Component {
   }
 
   createRoom = async function() {
+    console.log('CREATING ROOM')
     const currentDate = new Date()
     const chatDate = currentDate.toLocaleDateString()
     const chatTime = currentDate.toLocaleTimeString()
@@ -331,6 +344,7 @@ class ChatBox extends React.Component {
   }
 
   displayBotMessage = (content, roomId) => {
+    console.log('BOT MESSAGE', content)
     const msgList = [...this.state.messages]
     const msg = {
       id: uuid(),
@@ -340,6 +354,7 @@ class ChatBox extends React.Component {
       content: content,
     }
     msgList.push(msg)
+    console.log(msgList)
 
     this.setState({ messages: msgList })
   }
@@ -368,12 +383,13 @@ class ChatBox extends React.Component {
 
 
   handleKeyDown = (e) => {
-    if (e.keyCode === 27) {
-      if (this.state.emojiSelectorOpen) {
-        this.closeEmojiSelector()
-      } else if (this.state.opened) {
-        this.handleToggleOpen()
-      }
+    switch (e.keyCode) {
+      case 27:
+        if (this.state.emojiSelectorOpen) {
+          this.closeEmojiSelector()
+        } else if (this.state.opened) {
+          this.handleToggleOpen()
+        }
     }
   }
 
@@ -396,6 +412,7 @@ class ChatBox extends React.Component {
           if (event.isEncrypted()) {
             return;
           }
+          console.log("handleing UNENCRYPTED event")
           this.handleMessageEvent(event)
         }
       });
@@ -405,6 +422,7 @@ class ChatBox extends React.Component {
           return this.handleDecryptionError()
         }
         if (event.getType() === "m.room.message") {
+          console.log("handleing DECRYPTED event")
           this.handleMessageEvent(event)
         }
       });
@@ -453,6 +471,7 @@ class ChatBox extends React.Component {
 
   handleSubmit = e => {
     e.preventDefault()
+    e.stopPropagation()
     const message = this.state.inputValue
     if (!Boolean(message)) return null;
 

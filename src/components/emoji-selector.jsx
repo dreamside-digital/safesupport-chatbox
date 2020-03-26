@@ -34,7 +34,7 @@ class EmojiSelector extends React.Component {
               }
             }
           </Transition>
-          <button id="emoji-button" onClick={toggleEmojiSelector} aria-label="Emoji picker">
+          <button type="button" id="emoji-button" onClick={toggleEmojiSelector} aria-label="Emoji picker">
             <SVG />
           </button>
         </div>
