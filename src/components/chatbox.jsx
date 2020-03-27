@@ -82,7 +82,7 @@ class ChatBox extends React.Component {
   }
 
   closeEmojiSelector = () => {
-    this.setState({ emojiSelectorOpen: false }, () => this.chatboxInput.current.focus())
+    this.setState({ emojiSelectorOpen: false })
   }
 
   handleWidgetExit = () => {
@@ -269,7 +269,6 @@ class ChatBox extends React.Component {
   }
 
   createRoom = async function() {
-    console.log('CREATING ROOM')
     const currentDate = new Date()
     const chatDate = currentDate.toLocaleDateString()
     const chatTime = currentDate.toLocaleTimeString()
@@ -389,7 +388,9 @@ class ChatBox extends React.Component {
           this.closeEmojiSelector()
         } else if (this.state.opened) {
           this.handleToggleOpen()
-        }
+        };
+      default:
+        break;
     }
   }
 
@@ -412,7 +413,6 @@ class ChatBox extends React.Component {
           if (event.isEncrypted()) {
             return;
           }
-          console.log("handleing UNENCRYPTED event")
           this.handleMessageEvent(event)
         }
       });
@@ -422,7 +422,6 @@ class ChatBox extends React.Component {
           return this.handleDecryptionError()
         }
         if (event.getType() === "m.room.message") {
-          console.log("handleing DECRYPTED event")
           this.handleMessageEvent(event)
         }
       });
@@ -471,11 +470,13 @@ class ChatBox extends React.Component {
 
   handleSubmit = e => {
     e.preventDefault()
-    e.stopPropagation()
     const message = this.state.inputValue
+    console.log('event', e)
+    console.log('message', message)
     if (!Boolean(message)) return null;
 
     if (this.state.client && this.state.roomId) {
+      console.log("Setting state to empty")
       this.setState({ inputValue: "" })
       this.chatboxInput.current.focus()
       return this.sendMessage(message)
@@ -483,11 +484,12 @@ class ChatBox extends React.Component {
   }
 
   onEmojiClick = (event, emojiObject) => {
+    event.preventDefault()
     const { emoji } = emojiObject;
     this.setState({
       inputValue: this.state.inputValue.concat(emoji),
       emojiSelectorOpen: false,
-    }, () => this.chatboxInput.current.focus())
+    }, this.chatboxInput.current.focus())
   }
 
   render() {
@@ -551,7 +553,6 @@ class ChatBox extends React.Component {
                         aria-label={inputLabel}
                         placeholder={inputLabel}
                         autoFocus={true}
-                        onFocus={(e) => this.setState({ inputValue: this.state.inputValue })}
                         ref={this.chatboxInput}
                       />
                       <EmojiSelector
@@ -561,7 +562,7 @@ class ChatBox extends React.Component {
                         closeEmojiSelector={this.closeEmojiSelector}
                       />
                     </div>
-                    <input type="submit" value="Send" id="submit" />
+                    <input type="submit" value="Send" id="submit" onClick={this.handleSubmit} />
                   </form>
                 </div>
               </div>

@@ -27,10 +27,10 @@ class EmojiSelector extends React.Component {
             {
               status => {
                 return(
-                    <div className={`emoji-picker emoji-picker-${status}`} aria-hidden={!emojiSelectorOpen}>
-                      <EmojiPicker onEmojiClick={onEmojiClick}/>
-                    </div>
-                  )
+                  <div className={`emoji-picker emoji-picker-${status}`} aria-hidden={!emojiSelectorOpen}>
+                    <EmojiPicker onEmojiClick={onEmojiClick} />
+                  </div>
+                )
               }
             }
           </Transition>
