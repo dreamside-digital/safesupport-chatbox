@@ -471,8 +471,6 @@ class ChatBox extends React.Component {
   handleSubmit = e => {
     e.preventDefault()
     const message = this.state.inputValue
-    console.log('event', e)
-    console.log('message', message)
     if (!Boolean(message)) return null;
 
     if (this.state.client && this.state.roomId) {

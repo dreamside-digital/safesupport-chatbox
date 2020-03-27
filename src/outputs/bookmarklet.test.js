@@ -2,6 +2,13 @@ import ReactDOM from 'react-dom';
 import bookmarklet from './bookmarklet';
 
 describe('bookmarklet', () => {
+  beforeAll(() => {
+    const el = document.querySelectorAll('body > div');
+    ReactDOM.unmountComponentAtNode(el[0]);
+    el[0].parentNode.removeChild(el[0]);
+    window.EmbeddableChatbox = null;
+  })
+
   afterEach(() => {
     const el = document.querySelectorAll('body > div');
     ReactDOM.unmountComponentAtNode(el[0]);

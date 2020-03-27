@@ -28,7 +28,10 @@ class EmojiSelector extends React.Component {
               status => {
                 return(
                   <div className={`emoji-picker emoji-picker-${status}`} aria-hidden={!emojiSelectorOpen}>
-                    <EmojiPicker onEmojiClick={onEmojiClick} />
+                    <EmojiPicker
+                      onEmojiClick={onEmojiClick}
+                      emojiUrl="https://cdn.jsdelivr.net/gh/iamcal/emoji-data@master/img-apple-64"
+                    />
                   </div>
                 )
               }

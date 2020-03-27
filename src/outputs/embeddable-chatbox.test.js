@@ -1,8 +1,15 @@
 import EmbeddableChatbox from './embeddable-chatbox';
-import { waitForSelection } from '../test-helpers';
+import { waitForSelection } from '../utils/test-helpers';
 
 
 describe('EmbeddableChatbox', () => {
+  beforeAll(() => {
+    document.readyState = 'complete';
+    if (EmbeddableChatbox.el) {
+      EmbeddableChatbox.unmount();
+    }
+  });
+
   afterEach(() => {
     document.readyState = 'complete';
     if (EmbeddableChatbox.el) {

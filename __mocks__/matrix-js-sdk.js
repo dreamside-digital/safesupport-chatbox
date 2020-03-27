@@ -45,6 +45,7 @@ export const mockDeactivateAccount = jest.fn(() => {
   return Promise.resolve('value');
 });
 export const mockOn = jest.fn()
+export const mockSetDisplayName = jest.fn()
 
 export const mockClient = {
   registerRequest: mockRegisterRequest,
@@ -64,6 +65,9 @@ export const mockClient = {
   setPowerLevel: mockSetPowerLevel,
   sendTextMessage: mockSendTextMessage,
   deactivateAccount: mockDeactivateAccount,
+  setDisplayName: mockSetDisplayName,
 }
+
+export const WebStorageSessionStore = jest.fn()
 
 export const createClient = jest.fn().mockReturnValue(mockClient)
