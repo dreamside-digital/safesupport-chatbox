@@ -15,7 +15,9 @@
   },
   "babel": {
     "presets": [
-      "airbnb"
+      "airbnb",
+      "@babel/preset-env",
+      "@babel/preset-react"
     ],
     "plugins": [
       "@babel/plugin-syntax-dynamic-import",
@@ -31,9 +33,11 @@
       "@babel/plugin-proposal-function-sent",
       "@babel/plugin-proposal-export-namespace-from",
       "@babel/plugin-proposal-numeric-separator",
-      "@babel/plugin-proposal-throw-expressions"
+      "@babel/plugin-proposal-throw-expressions",
+      "@babel/plugin-transform-runtime"
     ]
   },
+  "browserslist": "> 0.25%, not dead",
   "jest": {
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
@@ -75,10 +79,14 @@
     "@babel/plugin-proposal-throw-expressions": "7.7.4",
     "@babel/plugin-syntax-dynamic-import": "7.7.4",
     "@babel/plugin-syntax-import-meta": "7.7.4",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-react": "^7.9.4",
     "@storybook/addon-actions": "5.2.8",
     "@storybook/addon-links": "5.2.8",
     "@storybook/addons": "5.2.8",
     "@storybook/react": "5.2.8",
+    "autoprefixer": "^9.7.5",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.0.3",
     "babel-jest": "24.9.0",

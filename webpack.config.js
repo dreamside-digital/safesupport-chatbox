@@ -1,5 +1,6 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const increaseSpecificity = require('postcss-increase-specificity');
+const autoprefixer = require('autoprefixer');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
@@ -60,6 +61,7 @@ const defaultConfig = {
                   stackableRoot: '.cleanslate',
                   repeat: 1,
                 }),
+                autoprefixer()
               ],
               sourceMap: devMode,
             },
