@@ -16,7 +16,14 @@
   "babel": {
     "presets": [
       "airbnb",
-      "@babel/preset-env",
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "12"
+          }
+        }
+      ],
       "@babel/preset-react"
     ],
     "plugins": [
