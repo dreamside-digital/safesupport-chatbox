@@ -22,7 +22,7 @@ import './styles.scss';
 
 const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
-const UNENCRYPTION_NOTICE = "End-to-end message encryption is not available on this browser."
+const UNENCRYPTION_NOTICE = "Messages in this chat are not encrypted."
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space/"
@@ -56,11 +56,46 @@ class ChatBox extends React.Component {
       typingStatus: null,
       awaitingAgreement: true,
       emojiSelectorOpen: false,
+      facilitatorInvited: false,
+      isMobile: true,
+      isSlowConnection: true,
+      decryptionErrors: {},
     }
     this.state = this.initialState
     this.chatboxInput = React.createRef();
     this.messageWindow = React.createRef();
     this.termsUrl = React.createRef();
+  }
+
+  detectMobile = () => {
+    let isMobile = false;
+
+    if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+      console.log('navigator.userAgent', navigator.userAgent)
+      isMobile = true;
+    }
+
+    if (screen.width < 767) {
+      console.log('screen.width', screen.width)
+      isMobile = true;
+    }
+
+    this.setState({ isMobile })
+  }
+
+  detectSlowConnection = () => {
+    let isSlowConnection = false;
+
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    if (typeof connection !== 'undefined' || connection === null) {
+      const connectionType = connection.effectiveType;
+      const slowConnections = ['slow-2g', '2g']
+
+      isSlowConnection = slowConnections.includes(connectionType)
+    }
+
+    this.setState({ isSlowConnection })
   }
 
   handleToggleOpen = () => {
@@ -107,116 +142,119 @@ class ChatBox extends React.Component {
     }
   }
 
-  exitChat = () => {
+  exitChat = async () => {
     if (!this.state.client) return null;
-    return this.state.client.leave(this.state.roomId)
-      .then(() => {
-        const auth = {
-          type: 'm.login.password',
+
+    await this.state.client.leave(this.state.roomId)
+
+    const auth = {
+      type: 'm.login.password',
+      user: this.state.userId,
+      identifier: {
+          type: "m.id.user",
           user: this.state.userId,
-          identifier: {
-              type: "m.id.user",
-              user: this.state.userId,
-          },
-          password: this.state.password,
-        };
-        this.state.client.deactivateAccount(auth, true)
-      })
-      .then(() => this.state.client.stopClient())
-      .then(() => this.state.client.clearStores())
-      .then(() => {
-        this.state.localStorage.clear()
-        this.setState(this.initialState)
-      })
+      },
+      password: this.state.password,
+    };
+
+    await this.state.client.deactivateAccount(auth, true)
+    await this.state.client.stopClient()
+    await this.state.client.clearStores()
+
+    this.state.localStorage.clear()
+    this.setState(this.initialState)
   }
 
-  initializeChat = () => {
-    this.setState({ ready: false })
-    let client;
+  createLocalStorage = async (deviceId, sessionId) => {
+    let localStorage = global.localStorage;
+    if (typeof localStorage === "undefined" || localStorage === null) {
+      const deviceDesc = `matrix-chat-${deviceId}-${sessionId}`
+      const localStoragePath = path.resolve(path.join(os.homedir(), ".local-storage", deviceDesc))
+      localStorage = new LocalStorage(localStoragePath);
+    }
+    return localStorage;
+  }
+
+  createClientWithAccount = async () => {
+    const tmpClient = matrix.createClient(this.props.matrixServerUrl)
 
     try {
-      client = matrix.createClient(this.props.matrixServerUrl)
-    } catch(error) {
-      console.log("Error creating client", error)
-      return this.handleInitError(err)
-    }
+      await tmpClient.registerRequest({})
+    } catch(err) {
+      const username = uuid()
+      const password = uuid()
+      const sessionId = err.data.session
 
-    // empty registration request to get session
-    return client.registerRequest({})
-      .then(data => {
-        console.log("Empty registration request to get session", data)
+      const account = await tmpClient.registerRequest({
+        auth: {session: sessionId, type: "m.login.dummy"},
+        inhibit_login: false,
+        password: password,
+        username: username,
+        x_show_msisdn: true,
       })
-      .catch(err => {
-      // actual registration request with randomly generated username and password
-        const username = uuid()
-        const password = uuid()
-        const sessionId = err.data.session
-        client.registerRequest({
-          auth: {session: sessionId, type: "m.login.dummy"},
-          inhibit_login: false,
-          password: password,
-          username: username,
-          x_show_msisdn: true,
-        })
-        .then(data => {
 
-          // use node localStorage if window.localStorage is not available
-          let localStorage = global.localStorage;
-          if (typeof localStorage === "undefined" || localStorage === null) {
-            const deviceDesc = `matrix-chat-${data.device_id}-${sessionId}`
-            const localStoragePath = path.resolve(path.join(os.homedir(), ".local-storage", deviceDesc))
-            localStorage = new LocalStorage(localStoragePath);
-          }
+      const localStorage = await this.createLocalStorage(account.device_id, sessionId)
 
-          this.setState({
-            accessToken: data.access_token,
-            userId: data.user_id,
-            username: username,
-            password: password,
-            localStorage: localStorage,
-            sessionId: sessionId,
-            deviceId: data.device_id,
-          })
+      this.setState({
+        accessToken: account.access_token,
+        userId: account.user_id,
+        username: username,
+        password: password,
+        localStorage: localStorage,
+        sessionId: sessionId,
+        deviceId: account.device_id,
+      })
 
-          // create new client with full options
-          let opts = {
-            baseUrl: this.props.matrixServerUrl,
-            accessToken: data.access_token,
-            userId: data.user_id,
-            deviceId: data.device_id,
-            sessionStore: new matrix.WebStorageSessionStore(localStorage),
-          }
+      let opts = {
+        baseUrl: this.props.matrixServerUrl,
+        accessToken: account.access_token,
+        userId: account.user_id,
+        deviceId: account.device_id,
+        sessionStore: new matrix.WebStorageSessionStore(localStorage),
+      }
 
-          client = matrix.createClient(opts)
-        })
-        .catch(err => {
-          this.handleInitError(err)
-        })
-        .then(() => client.initCrypto())
-        .catch(err => {
-          client.stopClient()
-          client.clearStores()
-          return Promise.reject({ error: "Failed crypto", message: err })
-        })
-        .then(() => client.setDisplayName(this.props.anonymousDisplayName))
-        .then(() => client.startClient())
-        .then(() => {
-          this.setState({
-            client: client
-          })
-        })
-        .catch(err => {
-          if (err.error === "Failed crypto") {
-            this.initializeUnencryptedChat()
-          } else {
-            this.handleInitError(err)
-          }
-        })
-    })
+      return matrix.createClient(opts)
+    }
   }
 
-  initializeUnencryptedChat = () => {
+  initializeChat = async () => {
     this.setState({ ready: false })
+
+    const client = await this.createClientWithAccount()
+    this.setState({
+      client: client
+    })
+    client.setDisplayName(this.props.anonymousDisplayName)
+    this.setMatrixListeners(client)
+
+    try {
+      await client.initCrypto()
+    } catch(err) {
+      return this.initializeUnencryptedChat()
+    }
+
+    await client.startClient()
+    await this.createRoom(client)
+  }
+
+  initializeUnencryptedChat = async () => {
+    if (this.state.client) {
+      this.state.client.stopClient()
+      this.state.client.clearStores()
+      this.state.localStorage.clear()
+    }
+
+    this.setState({
+      ready: false,
+      facilitatorInvited: false,
+      decryptionErrors: {},
+      roomId: null,
+      typingStatus: null,
+      client: null,
+      isCryptoEnabled: false,
+    })
+
+    this.displayBotMessage({ body: RESTARTING_UNENCRYPTED_CHAT_MESSAGE })
 
     let opts = {
       baseUrl: this.props.matrixServerUrl,
@@ -226,20 +264,22 @@ class ChatBox extends React.Component {
     }
 
     let client;
+    client = matrix.createClient(opts)
+    this.setState({
+      client: client,
+    })
+
     try {
-      client = matrix.createClient(opts)
+      this.setMatrixListeners(client)
       client.setDisplayName(this.props.anonymousDisplayName)
-    } catch {
-      return this.handleInitError(err)
+      await client.startClient()
+      await this.createRoom(client)
+      this.displayBotMessage({ body: UNENCRYPTION_NOTICE })
+    } catch(err) {
+      console.log("error", err)
+      this.handleInitError(err)
     }
-    return client.startClient()
-      .then(() => {
-        this.setState({
-          client: client,
-          isCryptoEnabled: false,
-        })
-      })
-      .catch(err => this.handleInitError(err))
+
   }
 
   handleInitError = (err) => {
@@ -248,27 +288,36 @@ class ChatBox extends React.Component {
     this.setState({ ready: true })
   }
 
-  handleDecryptionError = () => {
-    this.displayBotMessage({ body: RESTARTING_UNENCRYPTED_CHAT_MESSAGE })
+  handleDecryptionError = async (event, err) => {
+    if (this.state.client) {
+      const isCryptoEnabled = await this.state.client.isCryptoEnabled()
+      const isRoomEncrypted = this.state.client.isRoomEncrypted(this.state.roomId)
 
-    this.state.client.leave(this.state.roomId)
-      .then(() => this.state.client.stopClient())
-      .then(() => this.state.client.clearStores())
-      .then(() => this.initializeUnencryptedChat())
+      if (!isCryptoEnabled || !isRoomEncrypted) {
+        return this.initializeUnencryptedChat()
+      }
+    }
+
+    const eventId = event.getId()
+    this.displayFakeMessage({ body: '** Unable to decrypt message **' }, event.getSender(), eventId)
+    this.setState({ decryptionErrors: { [eventId]: true }})
   }
 
-  verifyAllRoomDevices = async function(roomId) {
-    let room = this.state.client.getRoom(roomId);
+  verifyAllRoomDevices = async (client, room) => {
+    if (!room) return;
+    if (!client) return;
+    if (!this.state.isCryptoEnabled) return;
+
     let members = (await room.getEncryptionTargetMembers()).map(x => x["userId"])
-    let memberkeys = await this.state.client.downloadKeys(members);
+    let memberkeys = await client.downloadKeys(members);
     for (const userId in memberkeys) {
       for (const deviceId in memberkeys[userId]) {
-        await this.state.client.setDeviceVerified(userId, deviceId);
+        await client.setDeviceVerified(userId, deviceId);
       }
     }
   }
 
-  createRoom = async function() {
+  createRoom = async (client) => {
     const currentDate = new Date()
     const chatDate = currentDate.toLocaleDateString()
     const chatTime = currentDate.toLocaleTimeString()
@@ -279,7 +328,7 @@ class ChatBox extends React.Component {
       name: `${chatTime}, ${chatDate} - ${this.props.roomName}`,
     }
 
-    const isCryptoEnabled = await this.state.client.isCryptoEnabled()
+    const isCryptoEnabled = await client.isCryptoEnabled()
 
     if (isCryptoEnabled) {
       roomConfig.initial_state = [
@@ -291,17 +340,9 @@ class ChatBox extends React.Component {
       ]
     }
 
-    const { room_id } = await this.state.client.createRoom(roomConfig)
+    const { room_id } = await client.createRoom(roomConfig)
 
-    this.state.client.setPowerLevel(room_id, this.props.botId, 100)
-
-    if (isCryptoEnabled) {
-      this.verifyAllRoomDevices(room_id)
-    } else {
-      this.displayBotMessage({ body: UNENCRYPTION_NOTICE })
-    }
-
-    this.displayBotMessage({ body: this.props.confirmationMessage })
+    client.setPowerLevel(room_id, this.props.botId, 100)
 
     this.setState({
       roomId: room_id,
@@ -310,6 +351,9 @@ class ChatBox extends React.Component {
   }
 
   sendMessage = (message) => {
+    if (!this.state.client) {
+      return null
+    }
     this.state.client.sendTextMessage(this.state.roomId, message)
       .catch((err) => {
         switch (err["name"]) {
@@ -328,10 +372,10 @@ class ChatBox extends React.Component {
       })
   }
 
-  displayFakeMessage = (content, sender) => {
+  displayFakeMessage = (content, sender, messageId=uuid()) => {
     const msgList = [...this.state.messages]
     const msg = {
-      id: uuid(),
+      id: messageId,
       type: 'm.room.message',
       sender: sender,
       roomId: this.state.roomId,
@@ -343,7 +387,6 @@ class ChatBox extends React.Component {
   }
 
   displayBotMessage = (content, roomId) => {
-    console.log('BOT MESSAGE', content)
     const msgList = [...this.state.messages]
     const msg = {
       id: uuid(),
@@ -353,7 +396,6 @@ class ChatBox extends React.Component {
       content: content,
     }
     msgList.push(msg)
-    console.log(msgList)
 
     this.setState({ messages: msgList })
   }
@@ -375,9 +417,20 @@ class ChatBox extends React.Component {
       return;
     }
 
+    // check for decryption error message and replace with decrypted message
+    // or push message to messages array
     const messages = [...this.state.messages]
-    messages.push(message)
-    this.setState({ messages })
+    const decryptionErrors = {...this.state.decryptionErrors}
+    delete decryptionErrors[message.id]
+    const existingMessageIndex = messages.findIndex(({ id }) => id === message.id)
+
+    if (existingMessageIndex > -1) {
+      messages.splice(existingMessageIndex, 1, message)
+    } else {
+      messages.push(message)
+    }
+
+    this.setState({ messages, decryptionErrors })
   }
 
 
@@ -394,52 +447,69 @@ class ChatBox extends React.Component {
     }
   }
 
+  setMatrixListeners = client => {
+    client.once('sync', (state, prevState, res) => {
+      if (state === "PREPARED") {
+        this.setState({ ready: true })
+      }
+    });
+
+    client.on("Room.timeline", (event, room) => {
+      if (event.getType() === "m.room.encryption") {
+        this.displayBotMessage({ body: ENCRYPTION_NOTICE }, room.room_id)
+        this.verifyAllRoomDevices(client, room)
+      }
+
+      if (event.getType() === "m.room.message" && !this.state.isCryptoEnabled) {
+        if (event.isEncrypted()) {
+          return;
+        }
+        this.handleMessageEvent(event)
+      }
+
+      if (event.getType() === "m.room.member" && event.getSender() === this.props.botId && event.getContent().membership === "invite") {
+        this.setState({ facilitatorInvited: true })
+      }
+
+      if (event.getType() === "m.room.member" && event.getSender() !== this.props.botId && event.getContent().membership === "join") {
+        this.verifyAllRoomDevices(client, room)
+      }
+    });
+
+    client.on("Event.decrypted", (event, err) => {
+      if (err) {
+        return this.handleDecryptionError(event, err)
+      }
+      if (event.getType() === "m.room.message") {
+        this.handleMessageEvent(event)
+      }
+    });
+
+    client.on("RoomMember.typing", (event, member) => {
+      if (member.typing && member.roomId === this.state.roomId) {
+        this.setState({ typingStatus: `${member.name} is typing...` })
+      }
+      else {
+        this.setState({ typingStatus: null })
+      }
+    });
+  }
+
   componentDidUpdate(prevProps, prevState) {
-    if (this.state.client && prevState.client !== this.state.client) {
-      this.createRoom()
-
-      this.state.client.once('sync', (state, prevState, res) => {
-        if (state === "PREPARED") {
-          this.setState({ ready: true })
-        }
-      });
-
-      this.state.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
-        if (event.getType() === "m.room.encryption") {
-          this.displayBotMessage({ body: ENCRYPTION_NOTICE }, room.room_id)
-        }
-
-        if (event.getType() === "m.room.message" && !this.state.isCryptoEnabled) {
-          if (event.isEncrypted()) {
-            return;
-          }
-          this.handleMessageEvent(event)
-        }
-      });
-
-      this.state.client.on("Event.decrypted", (event, err) => {
-        if (err) {
-          return this.handleDecryptionError()
-        }
-        if (event.getType() === "m.room.message") {
-          this.handleMessageEvent(event)
-        }
-      });
-
-      this.state.client.on("RoomMember.typing", (event, member) => {
-        if (member.typing && member.roomId === this.state.roomId) {
-          this.setState({ typingStatus: `${member.name} is typing...` })
-        }
-        else {
-          this.setState({ typingStatus: null })
-        }
-      });
-    }
-
     if (prevState.messages.length !== this.state.messages.length) {
       if (this.messageWindow.current.scrollTo) {
         this.messageWindow.current.scrollTo(0, this.messageWindow.current.scrollHeight)
       }
+    }
+
+    if (!prevState.facilitatorInvited && this.state.facilitatorInvited) {
+      this.displayBotMessage({ body: this.props.confirmationMessage })
+    }
+
+    if (!prevState.opened && this.state.opened) {
+      this.detectMobile()
+      // not sure what to do with this
+      // this.detectSlowConnection()
     }
   }
 
@@ -460,7 +530,11 @@ class ChatBox extends React.Component {
 
   handleAcceptTerms = () => {
     this.setState({ awaitingAgreement: false })
-    this.initializeChat()
+    try {
+      this.initializeChat()
+    } catch(err) {
+      this.handleInitError(err)
+    }
   }
 
   handleRejectTerms = () => {
@@ -474,7 +548,6 @@ class ChatBox extends React.Component {
     if (!Boolean(message)) return null;
 
     if (this.state.client && this.state.roomId) {
-      console.log("Setting state to empty")
       this.setState({ inputValue: "" })
       this.chatboxInput.current.focus()
       return this.sendMessage(message)
@@ -491,7 +564,7 @@ class ChatBox extends React.Component {
   }
 
   render() {
-    const { ready, messages, inputValue, userId, roomId, typingStatus, opened, showDock, emojiSelectorOpen } = this.state;
+    const { ready, messages, inputValue, userId, roomId, typingStatus, opened, showDock, emojiSelectorOpen, isMobile, decryptionErrors } = this.state;
     const inputLabel = 'Send a message...'
 
     return (
@@ -532,11 +605,22 @@ class ChatBox extends React.Component {
                         )
                       })
                     }
+
                     { typingStatus &&
                       <div className="notices">
                         <div role="status">{typingStatus}</div>
                       </div>
                     }
+
+                    { Boolean(Object.keys(decryptionErrors).length) &&
+                      <div className={`message from-bot`}>
+                        <div className="text buttons">
+                          {`Restart chat without encryption?`}
+                          <button className="btn" id="accept" onClick={this.initializeUnencryptedChat}>RESTART</button>
+                        </div>
+                      </div>
+                    }
+
                     { !ready && <div className={`loader`}>loading...</div> }
                   </div>
                 </div>
@@ -553,12 +637,15 @@ class ChatBox extends React.Component {
                         autoFocus={true}
                         ref={this.chatboxInput}
                       />
-                      <EmojiSelector
-                        onEmojiClick={this.onEmojiClick}
-                        emojiSelectorOpen={emojiSelectorOpen}
-                        toggleEmojiSelector={this.toggleEmojiSelector}
-                        closeEmojiSelector={this.closeEmojiSelector}
-                      />
+                      {
+                        (status === "entered") && !isMobile &&
+                        <EmojiSelector
+                          onEmojiClick={this.onEmojiClick}
+                          emojiSelectorOpen={emojiSelectorOpen}
+                          toggleEmojiSelector={this.toggleEmojiSelector}
+                          closeEmojiSelector={this.closeEmojiSelector}
+                        />
+                      }
                     </div>
                     <input type="submit" value="Send" id="submit" onClick={this.handleSubmit} />
                   </form>
