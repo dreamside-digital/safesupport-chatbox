@@ -24,6 +24,7 @@ const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
 const UNENCRYPTION_NOTICE = "Messages in this chat are not encrypted."
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
+const MAX_WAIT_TIME_MS = 120000 // 2 minutes
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space/"
 const DEFAULT_BOT_ID = "@help-bot:rhok.space"
@@ -448,31 +449,32 @@ class ChatBox extends React.Component {
   }
 
   setMatrixListeners = client => {
-    client.once('sync', (state, prevState, res) => {
-      if (state === "PREPARED") {
-        this.setState({ ready: true })
-      }
-    });
-
     client.on("Room.timeline", (event, room) => {
-      if (event.getType() === "m.room.encryption") {
+      const eventType = event.getType()
+      const content = event.getContent()
+      const sender = event.getSender()
+
+      if (eventType === "m.room.encryption") {
         this.displayBotMessage({ body: ENCRYPTION_NOTICE }, room.room_id)
         this.verifyAllRoomDevices(client, room)
       }
 
-      if (event.getType() === "m.room.message" && !this.state.isCryptoEnabled) {
+      if (eventType === "m.room.message" && !this.state.isCryptoEnabled) {
         if (event.isEncrypted()) {
           return;
         }
         this.handleMessageEvent(event)
       }
 
-      if (event.getType() === "m.room.member" && event.getSender() === this.props.botId && event.getContent().membership === "invite") {
+      if (eventType === "m.room.member" && content.membership === "invite" && sender === this.props.botId) {
         this.setState({ facilitatorInvited: true })
       }
 
-      if (event.getType() === "m.room.member" && event.getSender() !== this.props.botId && event.getContent().membership === "join") {
+      if (eventType === "m.room.member" && content.membership === "join" && sender !== this.props.botId && sender !== this.state.userId) {
         this.verifyAllRoomDevices(client, room)
+        console.log("FACILITATOR JOINED!", sender)
+        this.setState({ facilitatorId: sender, ready: true })
+        window.clearTimeout(this.state.timeoutId)
       }
     });
 
@@ -530,11 +532,23 @@ class ChatBox extends React.Component {
 
   handleAcceptTerms = () => {
     this.setState({ awaitingAgreement: false })
+    this.startWaitTimeForFacilitator()
     try {
       this.initializeChat()
     } catch(err) {
       this.handleInitError(err)
     }
+  }
+
+  startWaitTimeForFacilitator = () => {
+    const timeoutId = window.setTimeout(() => {
+      if (!this.state.facilitatorId) {
+        this.displayBotMessage({ body: this.props.chatUnavailableMessage })
+        this.setState({ ready: true })
+      }
+    }, MAX_WAIT_TIME_MS)
+
+    this.setState({ timeoutId })
   }
 
   handleRejectTerms = () => {
