@@ -315,6 +315,10 @@
       display: flex;
       justify-content: flex-end;
 
+      &.placeholder {
+        opacity: 0.5;
+      }
+
       .text {
         border: 1px solid $theme-color;
         background-color: $theme-color;

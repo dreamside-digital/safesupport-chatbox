@@ -2,7 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import Linkify from 'linkifyjs/react';
 
-const Message = ({ message, userId, botId, client }) => {
+const Message = ({ message, userId, botId, client, placeholder }) => {
 
   const senderClass = () => {
     switch (message.sender) {
@@ -15,6 +15,16 @@ const Message = ({ message, userId, botId, client }) => {
       default:
         return 'from-support'
     }
+  }
+
+  if (placeholder) {
+    return(
+      <div className={`message from-me placeholder`}>
+        <div className="text">
+          { message.content.body }
+        </div>
+      </div>
+    )
   }
 
 

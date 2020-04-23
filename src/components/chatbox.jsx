@@ -62,6 +62,7 @@ class ChatBox extends React.Component {
       isMobile: true,
       isSlowConnection: true,
       decryptionErrors: {},
+      messagesInFlight: []
     }
     this.state = this.initialState
     this.chatboxInput = React.createRef();
@@ -353,9 +354,11 @@ class ChatBox extends React.Component {
   }
 
   sendMessage = (message) => {
+    console.log("SEND MESSAGE!", message)
     if (!this.state.client) {
       return null
     }
+
     this.state.client.sendTextMessage(this.state.roomId, message)
       .catch((err) => {
         switch (err["name"]) {
@@ -417,6 +420,16 @@ class ChatBox extends React.Component {
 
     if (message.content.body.startsWith('!bot') && message.sender !== this.state.userId) {
       return;
+    }
+
+    console.log("this.state.messagesInFlight", this.state.messagesInFlight)
+    const messagesInFlight = [...this.state.messagesInFlight]
+    console.log("message", message)
+    const placeholderMessageIndex = messagesInFlight.findIndex(msg => msg === message.content.body)
+    console.log("placeholderMessageIndex", placeholderMessageIndex)
+    if (placeholderMessageIndex > -1) {
+      messagesInFlight.splice(placeholderMessageIndex, 1)
+      this.setState({ messagesInFlight })
     }
 
     // check for decryption error message and replace with decrypted message
@@ -562,9 +575,10 @@ class ChatBox extends React.Component {
     if (!Boolean(message)) return null;
 
     if (this.state.client && this.state.roomId) {
-      this.setState({ inputValue: "" })
+      const messagesInFlight = [...this.state.messagesInFlight]
+      messagesInFlight.push(message)
+      this.setState({ inputValue: "", messagesInFlight }, () => this.sendMessage(message))
       this.chatboxInput.current.focus()
-      return this.sendMessage(message)
     }
   }
 
@@ -578,7 +592,7 @@ class ChatBox extends React.Component {
   }
 
   render() {
-    const { ready, messages, inputValue, userId, roomId, typingStatus, opened, showDock, emojiSelectorOpen, isMobile, decryptionErrors } = this.state;
+    const { ready, messages, messagesInFlight, inputValue, userId, roomId, typingStatus, opened, showDock, emojiSelectorOpen, isMobile, decryptionErrors } = this.state;
     const inputLabel = 'Send a message...'
 
     return (
@@ -616,6 +630,14 @@ class ChatBox extends React.Component {
                       messages.map((message, index) => {
                         return(
                           <Message key={message.id} message={message} userId={userId} botId={this.props.botId} client={this.state.client} />
+                        )
+                      })
+                    }
+
+                    {
+                      messagesInFlight.map((message, index) => {
+                        return(
+                          <Message key={`message-inflight-${index}`} message={{ content: { body: message }}} placeholder={true} />
                         )
                       })
                     }
