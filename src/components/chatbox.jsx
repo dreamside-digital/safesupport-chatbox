@@ -24,7 +24,7 @@ const ENCRYPTION_CONFIG = { "algorithm": "m.megolm.v1.aes-sha2" };
 const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end encryption."
 const UNENCRYPTION_NOTICE = "Messages in this chat are not encrypted."
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
-const MAX_WAIT_TIME_MS = 120000 // 2 minutes
+const WAIT_TIME_MS = 120000 // 2 minutes
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space/"
 const DEFAULT_BOT_ID = "@help-bot:rhok.space"
@@ -36,6 +36,7 @@ const DEFAULT_CONFIRMATION_MESSAGE = "Waiting for a facilitator to join the chat
 const DEFAULT_EXIT_MESSAGE = "The chat is closed. You may close this window."
 const DEFAULT_ANONYMOUS_DISPLAY_NAME="Anonymous"
 const DEFAULT_CHAT_UNAVAILABLE_MESSAGE = "The chat service is not available right now. Please try again later."
+const DEFAULT_WAIT_MESSAGE = "Please be patient, our online facilitators are currently responding to other support requests."
 
 
 class ChatBox extends React.Component {
@@ -541,12 +542,11 @@ class ChatBox extends React.Component {
   }
 
   startWaitTimeForFacilitator = () => {
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = window.setInterval(() => {
       if (!this.state.facilitatorId) {
-        this.displayBotMessage({ body: this.props.chatUnavailableMessage })
-        this.setState({ ready: true })
+        this.displayBotMessage({ body: this.props.waitMessage })
       }
-    }, MAX_WAIT_TIME_MS)
+    }, WAIT_TIME_MS)
 
     this.setState({ timeoutId })
   }
@@ -687,6 +687,7 @@ ChatBox.propTypes = {
   exitMessage: PropTypes.string,
   chatUnavailableMessage: PropTypes.string,
   anonymousDisplayName: PropTypes.string,
+  waitMessage: PropTypes.string,
 }
 
 ChatBox.defaultProps = {
@@ -700,6 +701,7 @@ ChatBox.defaultProps = {
   exitMessage: DEFAULT_EXIT_MESSAGE,
   anonymousDisplayName: DEFAULT_ANONYMOUS_DISPLAY_NAME,
   chatUnavailableMessage: DEFAULT_CHAT_UNAVAILABLE_MESSAGE,
+  waitMessage: DEFAULT_WAIT_MESSAGE,
 }
 
 export default ChatBox;
