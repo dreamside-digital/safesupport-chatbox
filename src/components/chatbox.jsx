@@ -242,6 +242,7 @@ class ChatBox extends React.Component {
 
   initializeUnencryptedChat = async () => {
     if (this.state.client) {
+      this.state.client.leave(this.state.roomId)
       this.state.client.stopClient()
       this.state.client.clearStores()
       this.state.localStorage.clear()
@@ -275,8 +276,8 @@ class ChatBox extends React.Component {
     try {
       this.setMatrixListeners(client)
       client.setDisplayName(this.props.anonymousDisplayName)
-      await client.startClient()
       await this.createRoom(client)
+      await client.startClient()
       this.displayBotMessage({ body: UNENCRYPTION_NOTICE })
     } catch(err) {
       console.log("error", err)
@@ -286,7 +287,7 @@ class ChatBox extends React.Component {
   }
 
   handleInitError = (err) => {
-    console.log("Error", err)
+    console.log("error", err)
     this.displayBotMessage({ body: this.props.chatUnavailableMessage })
     this.setState({ ready: true })
   }
@@ -353,19 +354,16 @@ class ChatBox extends React.Component {
     })
   }
 
-  sendMessage = (message) => {
-    console.log("SEND MESSAGE!", message)
-    if (!this.state.client) {
-      return null
-    }
-
-    this.state.client.sendTextMessage(this.state.roomId, message)
-      .catch((err) => {
-        switch (err["name"]) {
+  sendMessage = async (message) => {
+    if (this.state.client && this.state.roomId) {
+      try {
+        await this.state.client.sendTextMessage(this.state.roomId, message)
+      } catch(err) {
+          switch (err["name"]) {
           case "UnknownDeviceError":
             Object.keys(err.devices).forEach((userId) => {
-              Object.keys(err.devices[userId]).map((deviceId) => {
-                  this.state.client.setDeviceKnown(userId, deviceId, true);
+              Object.keys(err.devices[userId]).map(async (deviceId) => {
+                await this.state.client.setDeviceKnown(userId, deviceId, true);
               });
             });
             this.sendMessage(message)
@@ -374,7 +372,8 @@ class ChatBox extends React.Component {
             this.displayBotMessage({ body: "Your message was not sent." })
             console.log("Error sending message", err);
         }
-      })
+      }
+    }
   }
 
   displayFakeMessage = (content, sender, messageId=uuid()) => {
@@ -422,11 +421,8 @@ class ChatBox extends React.Component {
       return;
     }
 
-    console.log("this.state.messagesInFlight", this.state.messagesInFlight)
     const messagesInFlight = [...this.state.messagesInFlight]
-    console.log("message", message)
     const placeholderMessageIndex = messagesInFlight.findIndex(msg => msg === message.content.body)
-    console.log("placeholderMessageIndex", placeholderMessageIndex)
     if (placeholderMessageIndex > -1) {
       messagesInFlight.splice(placeholderMessageIndex, 1)
       this.setState({ messagesInFlight })
@@ -486,7 +482,6 @@ class ChatBox extends React.Component {
 
       if (eventType === "m.room.member" && content.membership === "join" && sender !== this.props.botId && sender !== this.state.userId) {
         this.verifyAllRoomDevices(client, room)
-        console.log("FACILITATOR JOINED!", sender)
         this.setState({ facilitatorId: sender, ready: true })
         window.clearTimeout(this.state.timeoutId)
       }
@@ -573,6 +568,8 @@ class ChatBox extends React.Component {
     e.preventDefault()
     const message = this.state.inputValue
     if (!Boolean(message)) return null;
+
+    if (this.state.isCryptoEnabled && !(this.state.client.isRoomEncrypted(this.state.roomId) && this.state.client.isCryptoEnabled())) return null;
 
     if (this.state.client && this.state.roomId) {
       const messagesInFlight = [...this.state.messagesInFlight]
