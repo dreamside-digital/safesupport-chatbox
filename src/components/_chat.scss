@@ -56,7 +56,7 @@
     flex: 1 1 auto;
     text-align: left;
     margin-right: 0.25rem;
-    border: 1px solid $theme-color;
+    border: 1px solid $dark-color;
     border-radius: 10px;
     transition: all 0.2s ease-in-out;
   }
@@ -69,7 +69,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid $theme-color;
+    border: 1px solid $dark-color;
     transition: all 0.2s ease-in-out;
   }
 
