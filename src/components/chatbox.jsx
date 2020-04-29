@@ -75,12 +75,10 @@ class ChatBox extends React.Component {
     let isMobile = false;
 
     if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-      console.log('navigator.userAgent', navigator.userAgent)
       isMobile = true;
     }
 
     if (screen.width < 767) {
-      console.log('screen.width', screen.width)
       isMobile = true;
     }
 

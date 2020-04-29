@@ -35,6 +35,7 @@ export const mockGetRoom = jest.fn()
 export const mockDownloadKeys = jest.fn()
 export const mockSetDeviceVerified = jest.fn()
 export const mockIsCryptoEnabled = jest.fn()
+export const mockIsRoomEncrypted = jest.fn()
 export const mockCreateRoom = jest.fn().mockReturnValue({ room_id: 'room_id_1234' })
 export const mockSetPowerLevel = jest.fn()
 export const mockSendTextMessage = jest.fn(() => {
@@ -61,6 +62,7 @@ export const mockClient = {
   setDeviceVerified: mockSetDeviceVerified,
   setDeviceKnown: mockSetDeviceKnown,
   isCryptoEnabled: mockIsCryptoEnabled,
+  isRoomEncrypted: mockIsRoomEncrypted,
   createRoom: mockCreateRoom,
   setPowerLevel: mockSetPowerLevel,
   sendTextMessage: mockSendTextMessage,

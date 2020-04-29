@@ -10,7 +10,7 @@ Built on:
 
 ## Usage
 ```
-<script src="./chatbox.js"></script>
+<script src="https://unpkg.com/safesupport-chatbox" type="text/javascript"></script>
 <script>
   var config = {
     matrixServerUrl: 'https://matrix.rhok.space',
@@ -66,11 +66,11 @@ This chatbox is meant to be used with a bot account that handles a number of fun
 * Keeps a transcript of the conversation
 * Notifies user if there are not facilitators available
 
-The bot account is invited to the chatroom when a support request is initiated. 
+The bot account is invited to the chatroom when a support request is initiated.
 
-You can find the code for the bot at [ocrcc-bot](https://github.com/nomadic-labs/ocrcc-bot). 
+You can find the code for the bot at [ocrcc-bot](https://github.com/nomadic-labs/ocrcc-bot).
 
-## Bookmarklet 
+## Bookmarklet
 
 The bookmarklet is a special link that runs a script on any website. The user saves the link by dragging it to their bookmarks bar. Then they can click on the bookmark on any page to run the script and load the chatbox.
 

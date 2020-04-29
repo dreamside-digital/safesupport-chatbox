@@ -14,7 +14,9 @@ import {
   mockClearStores,
   mockOn,
   mockOnce,
-  mockSendTextMessage
+  mockSendTextMessage,
+  mockIsCryptoEnabled,
+  mockIsRoomEncrypted,
 } from "matrix-js-sdk";
 import { mount, shallow } from 'enzyme';
 import { createWaitForElement } from 'enzyme-wait';
@@ -53,6 +55,8 @@ describe('Chatbox', () => {
     mockOnce.mockClear()
     mockOn.mockClear()
     mockSendTextMessage.mockClear()
+    mockIsCryptoEnabled.mockClear()
+    mockIsRoomEncrypted.mockClear()
   })
 
   test('chat window should open and close', async () => {
@@ -113,9 +117,7 @@ describe('Chatbox', () => {
     expect(mockStartClient).toHaveBeenCalled()
     expect(mockCreateRoom).toHaveBeenCalled()
     expect(mockSetPowerLevel).toHaveBeenCalled()
-    expect(mockSetPowerLevel).toHaveBeenCalled()
     expect(mockOn).toHaveBeenCalled()
-    expect(mockOnce).toHaveBeenCalled()
   })
 
   test('rejecting terms should not start chat', async () => {
