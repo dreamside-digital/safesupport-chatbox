@@ -1,7 +1,6 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const increaseSpecificity = require('postcss-increase-specificity');
 const autoprefixer = require('autoprefixer');
-const JavaScriptObfuscator = require('webpack-obfuscator');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
@@ -27,8 +26,7 @@ const defaultConfig = {
     new CopyPlugin([
       { from: 'public', to: '.' },
     ]),
-    devMode ? null : new JavaScriptObfuscator(),
-  ].filter(i => i),
+  ],
   module: {
     rules: [
       {

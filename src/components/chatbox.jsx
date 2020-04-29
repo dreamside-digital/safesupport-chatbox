@@ -6,7 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import * as fs from "fs";
 import { LocalStorage } from "node-localstorage";
-import * as olm from "olm"
+import * as olm from "olm/olm_legacy.js"
 global.Olm = olm
 
 import * as matrix from "matrix-js-sdk";
@@ -25,6 +25,7 @@ const ENCRYPTION_NOTICE = "Messages in this chat are secured with end-to-end enc
 const UNENCRYPTION_NOTICE = "Messages in this chat are not encrypted."
 const RESTARTING_UNENCRYPTED_CHAT_MESSAGE = "Restarting chat without encryption."
 const WAIT_TIME_MS = 120000 // 2 minutes
+const CHAT_IS_OFFLINE_NOTICE = "Chat is offline"
 
 const DEFAULT_MATRIX_SERVER = "https://matrix.rhok.space/"
 const DEFAULT_BOT_ID = "@help-bot:rhok.space"
@@ -483,15 +484,22 @@ class ChatBox extends React.Component {
       if (eventType === "m.room.member" && content.membership === "join" && sender !== this.props.botId && sender !== this.state.userId) {
         this.verifyAllRoomDevices(client, room)
         this.setState({ facilitatorId: sender, ready: true })
-        window.clearTimeout(this.state.timeoutId)
+        window.clearInterval(this.state.timeoutId)
       }
     });
+
 
     client.on("Event.decrypted", (event, err) => {
       if (err) {
         return this.handleDecryptionError(event, err)
       }
       if (event.getType() === "m.room.message") {
+        const content = event.getContent()
+
+        if (content.msgtype === "m.notice" && content.body === CHAT_IS_OFFLINE_NOTICE) {
+          this.setState({ ready: true })
+          return window.clearInterval(this.state.timeoutId)
+        }
         this.handleMessageEvent(event)
       }
     });
