@@ -1,8 +1,8 @@
 {
-  "name": "ocrcc-chatbox",
-  "version": "0.1.0",
-  "description": "building an embeddable js widget with react",
-  "main": "index.js",
+  "name": "safesupport-chatbox",
+  "version": "1.0.0",
+  "description": "A secure and private embeddable chatbox that connects to Riot",
+  "main": "dist/chatbox.js",
   "scripts": {
     "build": "NODE_ENV=production webpack-cli --mode production",
     "start": "webpack-dev-server",
@@ -73,7 +73,7 @@
       "./public"
     ]
   },
-  "author": "Nomadic Labs",
+  "author": "Nomadic Labs <sharon@nomadiclabs.ca",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "7.7.7",
