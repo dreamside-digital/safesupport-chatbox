@@ -9,7 +9,7 @@ Built on:
 - [Matrix JS SDK](https://github.com/matrix-org/matrix-js-sdk)
 
 ## Usage
-```
+```html
 <script src="https://unpkg.com/safesupport-chatbox" type="text/javascript"></script>
 <script>
   var config = {
