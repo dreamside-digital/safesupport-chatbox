@@ -1,0 +1,187 @@
+@media (prefers-color-scheme: dark) {
+
+  .loader {
+    color: $dark-theme-color;
+  }
+
+  .dock {
+    #open-chatbox-label, .label-icon {
+      border-color: $white;
+    }
+
+    &:hover {
+      #open-chatbox-label, .label-icon {
+        border: 1px solid $dark-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+      }
+    }
+  }
+
+  .widget-header-minimize, .widget-header-close {
+    background: $dark-background-color;
+    color: $light-text-color;
+    border: 1px solid $white;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      border-color: $theme-color;
+      box-shadow: inset 0px 0px 0px 1px $theme-color;
+    }
+
+    &:focus {
+      border-color: $theme-color;
+      background: $dark-theme-highlight-color;
+      box-shadow: inset 0px 0px 0px 1px $theme-color;
+      outline: none;
+    }
+  }
+
+  .widget {
+    button {
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        border-color: $theme-color;
+        box-shadow: inset 0px 0px 0px 1px $theme-color;
+      }
+
+      &:focus {
+        background: $dark-theme-highlight-color;
+        box-shadow: inset 0px 0px 0px 1px $theme-color;
+        outline: none;
+      }
+    }
+  }
+  #safesupport-chatbox {
+    .btn-icon {
+      color: $light-text-color;
+    }
+    .message-window {
+      background-color: $dark-background-color;
+      border: 1px solid $white;
+    }
+
+    .notices {
+      color: transparentize($light-text-color, 0.3);
+    }
+
+    .message {
+      &.from-bot {
+        color: transparentize($light-text-color, 0.3);
+        font-size: 0.9rem;
+      }
+
+      &.from-me {
+        .text {
+          background-color: $theme-color;
+          color: $light-text-color;
+          border: 1px solid $theme-color;
+        }
+      }
+
+      &.from-support {
+        .text {
+          background-color: $dark-theme-color;
+          color: $light-text-color;
+          border: 1px solid $dark-theme-color;
+        }
+
+        a {
+          color: $light-text-color;
+
+          &:hover, &:focus {
+            color: $light-purple;
+          }
+        }
+      }
+
+      .buttons {
+        button {
+          background-color: transparent;
+          border: 1px solid $theme-color;
+
+          &:hover {
+            border: 1px solid $light-purple;
+            box-shadow: inset 0px 0px 0px 1px $light-purple;
+          }
+
+          &:focus {
+            outline: none;
+            color: $white;
+            border: 1px solid $light-purple;
+            box-shadow: inset 0px 0px 0px 1px $light-purple;
+            background-color: $dark-theme-highlight-color;
+          }
+        }
+      }
+    }
+
+    .input-window {
+      .message-input-container {
+        input[type="text"] {
+          background-color: $dark-background-color;
+          color: $light-text-color;
+          border: 1px solid $white;
+
+          &:hover {
+            border: 1px solid $theme-color;
+            box-shadow: inset 0px 0px 0px 1px $theme-color;
+          }
+
+          &:focus {
+            outline: none;
+            border: 1px solid $theme-color;
+            box-shadow: inset 0px 0px 0px 1px $theme-color;
+            background: $dark-theme-highlight-color;
+          }
+        }
+
+        ::placeholder {
+          color: transparentize($light-text-color, 0.3);
+        }
+
+        .emoji-button-container {
+          button {
+            &#emoji-button {
+
+              &:hover {
+                svg path#icon {
+                  fill: $theme-color;
+                }
+              }
+
+              &:focus {
+                svg path#icon {
+                  fill: $light-purple;
+                }
+              }
+            }
+          }
+        }
+
+      }
+
+      input[type="submit"] {
+        background-color: $dark-theme-color;
+        color: $light-text-color;
+        border: 1px solid $white;
+
+        &:hover {
+          border: 1px solid $theme-color;
+          box-shadow: inset 0px 0px 0px 1px $theme-color;
+        }
+
+        &:focus {
+          outline: none;
+          border: 1px solid $theme-color;
+          box-shadow: inset 0px 0px 0px 1px $theme-color;
+          background-color: $dark-theme-highlight-color;
+        }
+      }
+    }
+
+    .highlight-text {
+      color: $light-text-color;
+    }
+  }
+}

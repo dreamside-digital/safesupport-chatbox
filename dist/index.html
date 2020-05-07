@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Embeddable Chatbox Demo</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1">
+  </head>
+  <body style="height: 100vh;">
+    <p style="font-family:sans-serif; padding: 3rem 5rem;">
+      <a id="bookmarklet">Bookmarklet (drag it to your bookmarks bar)</a>
+    </p>
+    <p style="font-family:sans-serif; padding: 3rem 5rem;">Look down!</p>
+
+    <script src="./chatbox.js"></script>
+    <script>
+      var config = {
+        matrixServerUrl: 'https://matrix.safesupport.chat',
+        botId: '@help-bot:safesupport.chat',
+        roomName: 'Support Chat',
+        termsUrl: 'https://tosdr.org/',
+        introMessage: "This chat application does not collect any of your personal data or any data from your use of this service.",
+        agreementMessage: 'Do you want to continue?',
+        confirmationMessage: 'Waiting for a facilitator to join the chat...',
+        exitMessage: 'The chat is closed. You may close this window.',
+        chatUnavailableMessage: 'The chat service is not available right now. Please try again later.',
+        anonymousDisplayName: 'Anonymous',
+    }
+
+      EmbeddableChatbox.mount(config);
+    </script>
+
+    <script>
+       var bookmarklet = "var s= document.createElement('script'); s.setAttribute('src', '"+window.location.href+"bookmarklet.js'); s.setAttribute('crossorigin', 'anonymous'); document.body.appendChild(s);"
+       bookmarklet = '(function(){'+ bookmarklet +'})();'
+       document.querySelector('a#bookmarklet').setAttribute("href", "javascript:" + encodeURIComponent(bookmarklet));
+      </script>
+  </body>
+</html>

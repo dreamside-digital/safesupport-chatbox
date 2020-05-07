@@ -1,0 +1,547 @@
+* {
+  box-sizing: border-box;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+    display: inherit;
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideOutDown {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    display: none;
+    visibility: hidden;
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+.docked-widget {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 9999;
+  width: 400px;
+  max-width: 100vw;
+  font-size: $base-font-size;
+}
+
+.dock {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 400px;
+  max-width: calc(100vw - 10px);
+  color: $white;
+  font-family: $theme-font;
+  font-size: 1em;
+  border: none;
+  color: $white;
+  font-size: 1em;
+  line-height: 1;
+  background-color: transparent;
+  padding: 5px;
+
+  #open-chatbox-label {
+    background: $theme-color;
+    padding: 0.75em;
+    flex: 1 1 auto;
+    text-align: left;
+    margin-right: 0.25em;
+    border: 1px solid $white;
+    border-radius: 0.625em;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .label-icon {
+    background: $theme-color;
+    height: 2.625em;
+    width: 2.625em;
+    border-radius: 2.625em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid $white;
+    transition: all 0.2s ease-in-out;
+  }
+
+  &:hover {
+    #open-chatbox-label, .label-icon {
+      border: 1px solid $dark-color;
+      box-shadow: inset 0px 0px 0px 1px $dark-color;
+    }
+  }
+
+  &:focus {
+    outline: none;
+
+    #open-chatbox-label, .label-icon {
+      border: 1px solid $dark-color;
+      box-shadow: inset 0px 0px 0px 1px $dark-color;
+      background-color: $theme-highlight-color;
+    }
+  }
+}
+
+
+.widget {
+  width: 400px;
+  max-width: calc(100vw - 10px);
+  border-bottom: none;
+  animation-duration: 0.2s;
+  animation-fill-mode: forwards;
+
+  &-entering {
+    animation-name: slideInUp;
+  }
+  &-entered {
+    display: inherit;
+    visibility: visible;
+  }
+  &-exiting {
+    animation-name: slideOutDown;
+  }
+  &-exited {
+    display: none;
+    visibility: hidden;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.2em;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+
+    &-title {
+      display: flex;
+      flex-grow: 1;
+    }
+
+    &-minimize {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      border: 1px solid $dark-color !important;
+      background: $white;
+      color: $dark-color;
+      flex: 1 1 auto;
+      font-family: $theme-font;
+      font-size: 1em;
+      padding: 0.5em;
+      border-radius: 0.625em;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+        background-color: $theme-light-color;
+      }
+    }
+
+    &-close {
+      font-size: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $dark-color !important;
+      background: $white;
+      border-radius: 2.625em;
+      padding: 0.5em;
+      margin-left: 0.2em;
+      color: $dark-color;
+      transition: all 0.2s ease-in-out;
+      width: 2.625em;
+
+      &:hover {
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+        background-color: $theme-light-color;
+      }
+    }
+  }
+  &-body {
+    background: white;
+    padding: 10px;
+    height: 150px;
+  }
+  &-footer {
+    background: green;
+    line-height: 30px;
+    padding-left: 10px;
+  }
+
+  button {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      box-shadow: inset 0px 0px 0px 1px $dark-color;
+    }
+
+    &:focus {
+      background-color: $theme-light-color;
+      outline: none;
+    }
+  }
+}
+
+.btn-icon {
+  font-size: 1.5em;
+  line-height: 1;
+  transform: rotateX(0deg);
+  transition: all 0.5s linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow {
+  margin-right: 0.5em;
+  transform: translateY(0.15em);
+
+  &.opened {
+    color: $dark-color;
+    transform: rotateX(180deg) translateY(0.15em);
+  }
+
+}
+
+#safesupport-chatbox {
+  font-family: $theme-font;
+  display: flex;
+  flex-direction: column;
+  height: calc(40vh + 180px);
+  max-height: 100vh;
+  padding: 5px;
+
+  a {
+    color: inherit;
+    transition: all 0.2s ease-in-out;
+
+    &:hover, &:focus {
+      color: $theme-color;
+    }
+  }
+
+  .message-window {
+    background-color: $white;
+    border: 1px solid $dark-color;
+    flex: 1 1 auto;
+    padding: 0.5em;
+    overflow: scroll;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    margin-bottom: 0.2em;
+    border-radius: 0.625em;
+  }
+
+  .notices {
+    color: $gray-color;
+    font-size: 0.9em;
+
+    > div {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+  }
+
+  .message {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+
+    .text {
+      width: fit-content;
+      line-height: 1.2;
+    }
+
+    .buttons {
+      display: flex;
+      align-items: center;
+
+      button {
+        background-color: transparent;
+        padding: 0.25em 0.5em;
+        font-size: 0.9em;
+        color: inherit;
+        font-weight: bold;
+        font-family: $theme-font;
+        cursor: pointer;
+        display: flex;
+        flex: 0 1 auto;
+        border: 1px solid $theme-color;
+        transition: all 0.2s ease-in-out;
+        border-radius: 0.625em;
+        margin-left: 0.25em;
+
+        &:hover {
+          border: 1px solid $dark-color;
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+        }
+
+        &:focus {
+          outline: none;
+          color: $white;
+          border: 1px solid $dark-color;
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+          background-color: $theme-highlight-color;
+        }
+      }
+    }
+
+
+    &.from-bot {
+      color: $gray-color;
+      font-size: 0.9em;
+    }
+
+    &.from-me {
+      display: flex;
+      justify-content: flex-end;
+
+      &.placeholder {
+        opacity: 0.5;
+      }
+
+      .text {
+        border: 1px solid $theme-color;
+        background-color: $theme-color;
+        color: $white;
+        border-radius: 1em 1em 0 1em;
+        margin-left: 10%;
+        padding: 0.3em 0.6em;
+      }
+
+      a {
+        color: $white;
+
+        &:hover, &:focus {
+          color: $light-purple;
+        }
+      }
+    }
+
+    &.from-support {
+      display: flex;
+      justify-content: flex-start;
+
+      .text {
+        border: 1px solid $light-color;
+        background-color: $light-color;
+        color: $dark-color;
+        border-radius: 1em 1em 1em 0;
+        margin-right: 10%;
+        padding: 0.5em 0.75em;
+      }
+
+      a {
+        color: $dark-color;
+
+        &:hover, &:focus {
+          color: $medium-purple;
+        }
+      }
+    }
+  }
+
+  .input-window {
+    flex: 0 0 auto;
+
+    form {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0;
+    }
+
+    input[type="submit"] {
+      background-color: $theme-color;
+      height: 100%;
+      padding: 0.5em 1em;
+      font-size: 1em;
+      color: $white;
+      font-weight: bold;
+      font-family: $theme-font;
+      cursor: pointer;
+      display: flex;
+      flex: 0 1 auto;
+      border: 1px solid $theme-color;
+      transition: all 0.2s ease-in-out;
+      border-radius: 0.625em;
+
+      &:hover {
+        border: 1px solid $dark-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+      }
+
+      &:focus {
+        outline: none;
+        border: 1px solid $dark-color;
+        box-shadow: inset 0px 0px 0px 1px $dark-color;
+        background-color: $theme-highlight-color;
+      }
+    }
+
+    .message-input-container {
+      display: flex;
+      flex: 1 1 auto;
+      position: relative;
+
+      input[type="text"] {
+        font-size: 1em;
+        padding: 0.5em;
+        padding-right: 32px;
+        border: none;
+        display: flex;
+        flex: 1 1 auto;
+        background: $white;
+        color: $dark-color;
+        font-family: $theme-font;
+        margin-right: 0.2em;
+        transition: all 0.2s ease-in-out;
+        border-radius: 0.625em;
+        border: 1px solid $dark-color;
+
+        &:hover {
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: inset 0px 0px 0px 1px $dark-color;
+          background: $theme-light-color;
+        }
+      }
+
+      .emoji-button-container {
+        position: absolute;
+        right: 6px;
+        top: 0;
+        bottom: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+
+        button {
+          transition: all 0.2s ease-in-out;
+
+          &:hover {
+            box-shadow: none;
+          }
+
+          &:focus {
+            outline: none;
+          }
+
+          &#emoji-button {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-right: 3px;
+            transition: all 0.2s ease-in-out;
+
+            &:hover {
+              svg path#icon {
+                fill: $theme-color;
+              }
+            }
+
+            &:focus {
+              svg path#icon {
+                fill: $theme-highlight-color;
+              }
+            }
+          }
+        }
+      }
+
+      .emoji-picker {
+        animation-duration: 0.2s;
+        animation-fill-mode: forwards;
+        position: absolute;
+        bottom: 32px;
+        right: -4px;
+
+        &-entering {
+          animation-name: slideInUp;
+          opacity: 0.5;
+        }
+        &-entered {
+          display: inherit;
+          visibility: visible;
+          opacity: 1;
+        }
+        &-exiting {
+          animation-name: slideOutDown;
+          opacity: 0.5;
+        }
+        &-exited {
+          display: none;
+          visibility: hidden;
+          opacity: 0;
+        }
+      }
+    }
+  }
+
+  .highlight-text {
+    color: $theme-color;
+  }
+
+  .pos-relative {
+    position: relative;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+@media screen and (max-width: 420px){
+  .docked-widget {
+    right: 0;
+    left: 0;
+    bottom: 0;
+  }
+
+  .dock, .widget {
+    width: 100vw;
+    max-width: 100vw;
+    padding: 5px;
+  }
+
+  #safesupport-chatbox {
+    height: calc(180px + 60vh);
+  }
+}
+
+@media screen and (max-width: 360px){
+  #safesupport-chatbox .input-window .message-input-container .emoji-picker {
+    position: fixed;
+    left: 5px;
+    right: 5px;
+    bottom: 42px;
+  }
+}

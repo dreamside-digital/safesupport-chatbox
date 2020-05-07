@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css?family=Assistant&display=swap');
+
+$purple: #785BEC;
+$light-purple: #ebe6fc;
+$medium-purple: #4D3A97;
+$charcoal: #828282;
+$light-color: #F2F2F2;
+$gray-color: $charcoal;
+$dark-color: #04090F;
+$yellow: #FFFACD;
+$dark-blue: #2660A4;
+$white: #ffffff;
+$highlight-color: $yellow;
+$theme-color: $purple;
+$theme-light-color: $light-purple;
+$theme-font: 'Assistant', 'Helvetica', sans-serif;
+$theme-highlight-color: $medium-purple;
+
+
+/* Dark mode colors */
+
+$dark-background-color: #0F1116;
+$light-background-color: #ffffff;
+$light-text-color: #ffffff;
+$dark-text-color: #0F1116;
+$dark-theme-color: #4F4F4F;
+$dark-theme-highlight-color: #211943;
+
+
+$base-font-size: 16px;
