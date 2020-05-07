@@ -2,7 +2,7 @@
 
 ![Demo video of chatbox](https://media.giphy.com/media/IhmtP0NoG22k6FRQDF/giphy.gif)
 
-Live demo: https://safesupport.chat
+Live demo: https://nomadic-labs.github.io/safesupport-chatbox/
 
 Built on:
 - [Embeddable React Widget](https://github.com/seriousben/embeddable-react-widget)
@@ -74,7 +74,7 @@ You can find the code for the bot at [safesupport-bot](https://github.com/nomadi
 
 The bookmarklet is a special link that runs a script on any website. The user saves the link by dragging it to their bookmarks bar. Then they can click on the bookmark on any page to run the script and load the chatbox.
 
-You can try this out on the [live demo](https://safesupport.chat/).
+You can try this out on the [live demo](https://nomadic-labs.github.io/safesupport-chatbox/).
 
 ## Local development
 
