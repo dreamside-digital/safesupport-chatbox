@@ -2,7 +2,7 @@
 
 ![Demo video of chatbox](https://media.giphy.com/media/IhmtP0NoG22k6FRQDF/giphy.gif)
 
-Live demo: https://nomadic-labs.github.io/safesupport-chatbox/
+Live demo: https://safesupport.chat
 
 Built on:
 - [Embeddable React Widget](https://github.com/seriousben/embeddable-react-widget)
@@ -13,8 +13,8 @@ Built on:
 <script src="https://unpkg.com/safesupport-chatbox" type="text/javascript"></script>
 <script>
   var config = {
-    matrixServerUrl: 'https://matrix.rhok.space',
-    botId: '@help-bot:rhok.space',
+    matrixServerUrl: 'https://matrix-client.matrix.org',
+    botId: '@your-help-bot:matrix.org',
     roomName: 'Support Chat',
     termsUrl: 'https://tosdr.org/',
     introMessage: 'This chat application does not collect any of your personal data or any data from your use of this service.',
@@ -31,8 +31,8 @@ Built on:
 Options:
 | Name | Description | Default
 | ----------- | ----------- | --------- |
-| `matrixServerUrl` (required) | URL for the Matrix homeserver you want to connect to | `https://matrix.rhok.space` |
-| `botId` (required) | User ID for the bot account that handles invites | `@help-bot:rhok.space` |
+| `matrixServerUrl` (required) | URL for the Matrix homeserver you want to connect to | `https://matrix-client.matrix.org` |
+| `botId` (required) | User ID for the bot account that handles invites | null |
 | `introMessage` (optional) | First message the user sees before agreeing to the Terms of Use | `This chat application does not collect any of your personal data or any data from your use of this service.` |
 | `termsUrl` (optional) | URL for the Terms of Use for the chat service | `https://tosdr.org/` |
 | `roomName` (optional)  | Name of the chatroom generated in Riot | 'Support Chat' |
@@ -50,7 +50,7 @@ Options:
 - [x] Support seekers are anonymous
 - [x] Uses Matrix's end to end encryption
 - [x] If encryption fails, falls back to unencrypted chat
-- [x] Status texts are customizeable
+- [x] Status notifications are customizeable
 - [x] Only initiates chat after user agrees to Terms of Service
 - [x] Upon exiting chat, user data is wiped - account deleted, local datastore cleared
 - [x] If enabled, the bot account can provide transcript of the conversation
@@ -74,7 +74,7 @@ You can find the code for the bot at [safesupport-bot](https://github.com/nomadi
 
 The bookmarklet is a special link that runs a script on any website. The user saves the link by dragging it to their bookmarks bar. Then they can click on the bookmark on any page to run the script and load the chatbox.
 
-You can try this out on the [live demo](https://nomadic-labs.github.io/safesupport-chatbox/).
+You can try this out on the [live demo](https://safesupport.chat/).
 
 ## Local development
 
@@ -94,6 +94,8 @@ yarn start
 ```
 
 Open the demo page at http://localhost:9000/
+
+Don't forget to also set up the bot account, otherwise you'll never get the chat invitations on Riot. Follow the instructions at [safesupport-bot](https://github.com/nomadic-labs/safesupport-bot).
 
 ## Production build
 ```
