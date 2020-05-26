@@ -68,7 +68,6 @@
     .message {
       &.from-bot {
         color: transparentize($light-text-color, 0.3);
-        font-size: 0.9rem;
       }
 
       &.from-me {
