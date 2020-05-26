@@ -599,103 +599,105 @@ class ChatBox extends React.Component {
     const inputLabel = 'Send a message...'
 
     return (
-      <div className="docked-widget" role="complementary">
-        <Transition in={opened} timeout={250} onExited={this.handleWidgetExit} onEntered={this.handleWidgetEnter}>
-          {(status) => {
-            return (
-            <div className={`widget widget-${status}`} aria-hidden={!opened}>
-              <div id="safesupport-chatbox" aria-haspopup="dialog">
-                <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />
+      <div id="safesupport">
+        <div className="docked-widget" role="complementary">
+          <Transition in={opened} timeout={250} onExited={this.handleWidgetExit} onEntered={this.handleWidgetEnter}>
+            {(status) => {
+              return (
+              <div className={`widget widget-${status}`} aria-hidden={!opened}>
+                <div id="safesupport-chatbox" aria-haspopup="dialog">
+                  <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />
 
-                <div className="message-window" ref={this.messageWindow}>
-                  <div className="messages">
-                    <div className={`message from-bot`}>
-                      <div className="text">{ this.props.introMessage }</div>
-                    </div>
-
-                    <div className={`message from-bot`}>
-                      <div className="text">Please read the full <a href={this.props.termsUrl} ref={this.termsUrl} target='_blank' rel='noopener noreferrer'>terms and conditions</a>. By using this chat, you agree to these terms.</div>
-                    </div>
-
-                    <div className={`message from-bot`}>
-                      <div className="text">{ this.props.agreementMessage }</div>
-                    </div>
-
-                    <div className={`message from-bot`}>
-                      <div className="text buttons">
-                        {`👉`}
-                        <button className="btn" id="accept" onClick={this.handleAcceptTerms}>YES</button>
-                        <button className="btn" id="reject" onClick={this.handleRejectTerms}>NO</button>
+                  <div className="message-window" ref={this.messageWindow}>
+                    <div className="messages">
+                      <div className={`message from-bot`}>
+                        <div className="text">{ this.props.introMessage }</div>
                       </div>
-                    </div>
 
-                    {
-                      messages.map((message, index) => {
-                        return(
-                          <Message key={message.id} message={message} userId={userId} botId={this.props.botId} client={this.state.client} />
-                        )
-                      })
-                    }
-
-                    {
-                      messagesInFlight.map((message, index) => {
-                        return(
-                          <Message key={`message-inflight-${index}`} message={{ content: { body: message }}} placeholder={true} />
-                        )
-                      })
-                    }
-
-                    { typingStatus &&
-                      <div className="notices">
-                        <div role="status">{typingStatus}</div>
+                      <div className={`message from-bot`}>
+                        <div className="text">Please read the full <a href={this.props.termsUrl} ref={this.termsUrl} target='_blank' rel='noopener noreferrer'>terms and conditions</a>. By using this chat, you agree to these terms.</div>
                       </div>
-                    }
 
-                    { Boolean(Object.keys(decryptionErrors).length) &&
+                      <div className={`message from-bot`}>
+                        <div className="text">{ this.props.agreementMessage }</div>
+                      </div>
+
                       <div className={`message from-bot`}>
                         <div className="text buttons">
-                          {`Restart chat without encryption?`}
-                          <button className="btn" id="accept" onClick={this.initializeUnencryptedChat}>RESTART</button>
+                          {`👉`}
+                          <button className="btn" id="accept" onClick={this.handleAcceptTerms}>YES</button>
+                          <button className="btn" id="reject" onClick={this.handleRejectTerms}>NO</button>
                         </div>
                       </div>
-                    }
 
-                    { !ready && <div className={`loader`}>loading...</div> }
+                      {
+                        messages.map((message, index) => {
+                          return(
+                            <Message key={message.id} message={message} userId={userId} botId={this.props.botId} client={this.state.client} />
+                          )
+                        })
+                      }
+
+                      {
+                        messagesInFlight.map((message, index) => {
+                          return(
+                            <Message key={`message-inflight-${index}`} message={{ content: { body: message }}} placeholder={true} />
+                          )
+                        })
+                      }
+
+                      { typingStatus &&
+                        <div className="notices">
+                          <div role="status">{typingStatus}</div>
+                        </div>
+                      }
+
+                      { Boolean(Object.keys(decryptionErrors).length) &&
+                        <div className={`message from-bot`}>
+                          <div className="text buttons">
+                            {`Restart chat without encryption?`}
+                            <button className="btn" id="accept" onClick={this.initializeUnencryptedChat}>RESTART</button>
+                          </div>
+                        </div>
+                      }
+
+                      { !ready && <div className={`loader`}>loading...</div> }
+                    </div>
+                  </div>
+                  <div className="input-window">
+                    <form onSubmit={this.handleSubmit}>
+                      <div className="message-input-container">
+                        <input
+                          id="message-input"
+                          type="text"
+                          onChange={this.handleInputChange}
+                          value={inputValue}
+                          aria-label={inputLabel}
+                          placeholder={inputLabel}
+                          autoFocus={true}
+                          ref={this.chatboxInput}
+                        />
+                        {
+                          (status === "entered") && !isMobile &&
+                          <EmojiSelector
+                            onEmojiClick={this.onEmojiClick}
+                            emojiSelectorOpen={emojiSelectorOpen}
+                            toggleEmojiSelector={this.toggleEmojiSelector}
+                            closeEmojiSelector={this.closeEmojiSelector}
+                          />
+                        }
+                      </div>
+                      <input type="submit" value="Send" id="submit" onClick={this.handleSubmit} />
+                    </form>
                   </div>
                 </div>
-                <div className="input-window">
-                  <form onSubmit={this.handleSubmit}>
-                    <div className="message-input-container">
-                      <input
-                        id="message-input"
-                        type="text"
-                        onChange={this.handleInputChange}
-                        value={inputValue}
-                        aria-label={inputLabel}
-                        placeholder={inputLabel}
-                        autoFocus={true}
-                        ref={this.chatboxInput}
-                      />
-                      {
-                        (status === "entered") && !isMobile &&
-                        <EmojiSelector
-                          onEmojiClick={this.onEmojiClick}
-                          emojiSelectorOpen={emojiSelectorOpen}
-                          toggleEmojiSelector={this.toggleEmojiSelector}
-                          closeEmojiSelector={this.closeEmojiSelector}
-                        />
-                      }
-                    </div>
-                    <input type="submit" value="Send" id="submit" onClick={this.handleSubmit} />
-                  </form>
-                </div>
               </div>
-            </div>
-            )}
-          }
-        </Transition>
-        {showDock && !roomId && <Dock handleToggleOpen={this.handleToggleOpen} />}
-        {showDock && roomId && <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />}
+              )}
+            }
+          </Transition>
+          {showDock && !roomId && <Dock handleToggleOpen={this.handleToggleOpen} />}
+          {showDock && roomId && <Header handleToggleOpen={this.handleToggleOpen} opened={opened} handleExitChat={this.handleExitChat} />}
+        </div>
       </div>
     );
   }

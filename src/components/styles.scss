@@ -1,4 +1,6 @@
-@import "variables";
-@import "loader";
-@import "chat";
-@import "dark_mode";
+#safesupport {
+  @import "variables";
+  @import "loader";
+  @import "chat";
+  @import "dark_mode";
+}
